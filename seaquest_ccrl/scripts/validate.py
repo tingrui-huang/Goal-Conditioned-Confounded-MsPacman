@@ -96,34 +96,27 @@ def check_A_and_B():
     record("A.oxygen_dynamics", bool(depletes and refills),
            f"oxy range [{oxy.min()},{oxy.max()}], theta={cfg.theta}")
 
-    # B1: every oxygen-rendering pixel is inside OXY_MASK_RECT
-    mx, my, mw, mh = cfg.oxy_mask_rect
-    rect = (mx, my, mx + mw, my + mh)
-    if bar_union is not None:
-        inside = (bar_union[0] >= rect[0] and bar_union[1] >= rect[1] and
-                  bar_union[2] <= rect[2] and bar_union[3] <= rect[3])
-    else:
-        inside = False
-    record("B.coverage", bool(inside),
-           f"bar union {bar_union} subset-of mask rect {rect}")
+    env.close()
 
-    # B2: masked region constant across oxygen levels (min vs max oxygen frame)
+    # B (authoritative): per-level containment sweep. The corrected skill requires
+    # this -- NOT the vacuous "post-mask rect is constant" test (zeroed by
+    # construction => passes proving nothing). Delegated to the shared check_B so
+    # there is one source of truth.
+    from seaquest_ccrl.scripts.checks_bc import check_B
+    contained = check_B(cfg.oxy_mask_rect, n_steps=600, verbose=False)
+    record("B.coverage", bool(contained),
+           "OxygenBar union OxygenBarDepleted contained in OXY_MASK_RECT at every swept level")
+
+    # Belt-and-suspenders demonstration (NOT the pass criterion): the unmasked rect
+    # DOES vary with oxygen (so the leak is real), confirming the mask is load-bearing.
     if len(frames_by_oxy) >= 2:
+        mx, my, mw, mh = cfg.oxy_mask_rect
         lo = frames_by_oxy[min(frames_by_oxy)]
         hi = frames_by_oxy[max(frames_by_oxy)]
-        # raw frames DIFFER inside rect (proof oxygen leaks there if unmasked)...
         raw_diff = int(np.abs(lo[my:my+mh, mx:mx+mw].astype(int) -
                               hi[my:my+mh, mx:mx+mw].astype(int)).sum())
-        # ...but AFTER masking they are identical inside rect (constant => no leak)
-        ml = apply_oxygen_mask(lo); mh_ = apply_oxygen_mask(hi)
-        masked_equal = np.array_equal(ml[my:my+mh, mx:mx+mw], mh_[my:my+mh, mx:mx+mw])
         record("B.unmasked_leaks", raw_diff > 0,
-               f"unmasked rect differs by {raw_diff} across oxygen (leak exists)")
-        record("B.masked_constant", bool(masked_equal),
-               "masked rect identical across oxygen (leak removed)")
-    else:
-        record("B.masked_constant", False, "insufficient oxygen variation sampled")
-    env.close()
+               f"unmasked rect varies by {raw_diff} across oxygen (mask is load-bearing)")
 
 
 def check_C():
