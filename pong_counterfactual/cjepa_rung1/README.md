@@ -71,6 +71,46 @@ wind-fired steps. **All invariants pass.**
 central Rung-1 claim holds: a model that never sees the seed or the wind reproduces the
 oracle counterfactual better than the no-abduction baseline.
 
+## Rung 1.1 — confirming the p=0 gap is partial observability, not a leak
+
+```
+python -m pong_counterfactual.cjepa_rung1.eval_rung11
+```
+
+A diagnostic ablation (not a new rung). Two latents live in `player_y`: **(a)** the
+paddle's momentum/charge — a *function of recent action history*, so feedable; and
+**(b)** the injected wind — external randomness, *never* a function of any input, so
+recoverable only by abducting the observed transition. Enriching the model input with
+a paddle history window `history(N)` (last N `player_y` + intended actions; sweep
+N ∈ {2,4,8}) should **separate** them: feed (a) and its gap collapses; (b) must survive.
+
+`eval_rung11.py` result (player_y L1 vs the oracle CF; shared eval pool):
+
+| N | p=0 gap | player_y top-1 | calm_gap (a: paddle) | fired_gap (b: wind) |
+|---|---------|----------------|----------------------|---------------------|
+| 2 | 0.904 | 74.2% | 0.644 | 0.229 |
+| 4 | 0.432 | 82.5% | 0.289 | 0.143 |
+| 8 | **0.112** | **91.8%** | **0.189 (×0.29)** | **0.200 (×0.87)** |
+
+(`calm`/`fired` split the p=0.25 paddle gap by whether the wind fired at k — oracle-binned,
+never a model input.)
+
+**Double dissociation, confirmed.** As history N grows: the p=0 gap collapses 8× (0.90→0.11),
+`player_y` top-1 climbs toward ball/enemy levels (74%→92%), and the **calm-step gap
+collapses to ×0.29** — latent (a) becomes observed, so abduction has nothing left to
+recover there. Meanwhile the **wind-fired gap stays at ×0.87** (does *not* collapse) and
+overtakes the calm gap at N=8 — latent (b) is un-feedable and survives input enrichment.
+
+So the ~0.9 p=0 gap from Rung 1 was **partial observability of the paddle's momentum,
+not a leak or an oracle artifact**. The injected-wind advantage is a genuinely separate
+latent. (The residual p=0 gap at N=8 is small-but-nonzero → a finer-than-integer paddle
+state remains; the spec's escalation — feeding the ALE RAM paddle byte — would drive it
+to ~0, but the dominant story is already settled and escalation is not triggered.)
+
+The wind effect is small in absolute px because at frameskip=1 a paddle step is only ~2px;
+that is why `fired_gap` ≈ `calm_gap` in level at N=8 even though their *collapse rates*
+dissociate cleanly.
+
 ## The honest finding (why real Pong ≠ the ideal)
 
 On real Pong the p=0 gap is **~0.9, not 0**. This is **not a bug** — it is a genuine
@@ -102,6 +142,8 @@ partially-observed dynamics — is the real lesson of Rung 1.
 - `oracle.py` — seed-replay single-step counterfactual ground truth.
 - `eval_rung1.py` — the real-Pong sweep + checks A/B/D/E.
 - `synthetic_check.py` — the clean single-latent control.
+- `history.py` — Rung 1.1 `history(N)` feature builder + `HistModel`.
+- `eval_rung11.py` — Rung 1.1 partial-observability double-dissociation sweep.
 
 ## Out of scope (later rungs)
 
