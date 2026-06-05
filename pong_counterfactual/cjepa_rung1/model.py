@@ -14,7 +14,9 @@ from sklearn.neural_network import MLPClassifier
 
 from pong_counterfactual.cjepa_rung1.collect import ACTIONS
 
-NORM = 210.0  # screen scale for feature normalization
+POS_NORM = 210.0   # positions span ~0..210
+VEL_NORM = 8.0     # one-step velocities span ~ -6..6 at frameskip=1; scale to ~O(1)
+                   # (normalizing velocity by 210 would squash it to ~0.03 -> invisible)
 
 
 class _Constant:
@@ -33,8 +35,8 @@ class TransitionModel:
         self.clfs = [None] * 4
 
     def _feat(self, pos, vel, intended):
-        P = np.asarray(pos, dtype=np.float64).reshape(-1, 4) / NORM
-        V = np.asarray(vel, dtype=np.float64).reshape(-1, 4) / NORM
+        P = np.asarray(pos, dtype=np.float64).reshape(-1, 4) / POS_NORM
+        V = np.asarray(vel, dtype=np.float64).reshape(-1, 4) / VEL_NORM
         A = np.asarray(intended).reshape(-1)
         oh = np.zeros((len(A), len(self.actions)))
         for j, a in enumerate(self.actions):

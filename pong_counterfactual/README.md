@@ -63,6 +63,15 @@ proper counterfactual freezes the luck; an intervention re-rolls it.
 - `env.py` — thin deterministic OCAtari Pong wrapper; `reset`/`step` return the 4-number state.
 - `counterfactual_demo.py` — the four-step demo (object state, determinism, single-action fork).
 - `wind_counterfactual.py` — the wind experiment (counterfactual vs intervention).
+- `cjepa_rung1/` — **Rung 1**: the first *learned* Gumbel-Max abduction model (see its README).
+
+## Rungs
+
+- **Rung 0 (this folder):** oracle / god-mode counterfactuals — determinism, wind,
+  counterfactual-vs-intervention by replaying vs re-rolling the wind.
+- **Rung 1 (`cjepa_rung1/`):** a learned transition model that *infers* the wind from
+  observations (abduction) and beats a no-abduction baseline against the oracle.
+  Run `python -m pong_counterfactual.cjepa_rung1.eval_rung1`.
 
 ## Why determinism matters here
 

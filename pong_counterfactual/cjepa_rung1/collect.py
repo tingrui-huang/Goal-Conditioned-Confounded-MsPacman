@@ -21,13 +21,26 @@ from pong_counterfactual.cjepa_rung1.noise import make_wind, apply_wind_noop, st
 NOOP, FIRE, UP, DOWN = 0, 1, 2, 3
 ACTIONS = [NOOP, UP, DOWN]          # the intended-action vocabulary the model sees
 
+# Rung-1 env config differs from Rung-0 on ONE thing: frameskip.
+# Rung 0 used frameskip=4. At frameskip=4 the paddle accelerates across the 4 hidden
+# frames, so its net integer delta depends on sub-step momentum we cannot observe ->
+# the 4-number state is NOT Markov even with velocity, and that hidden latent leaks
+# as a fake p=0 abduction gap. frameskip=1 exposes one frame of physics per step and
+# makes the paddle ~deterministic given (position, velocity, action). (Verified: 35/38
+# (vel,action) buckets become single-valued at fs=1 vs 8/52 at fs=4.)
+FRAMESKIP = 1
 
-def behavior_policy(s, rng, tol=3, eps=0.2):
-    """Noisy ball-tracker. Returns an INTENDED action in {NOOP, UP, DOWN}, or FIRE
-    to serve when the ball is absent."""
+
+def behavior_policy(s, rng, last_exe=NOOP, tol=3, eps=0.2):
+    """Noisy ball-tracker with a TAP discipline: never issue a move two steps in a
+    row (if the paddle just moved, release with NOOP). This keeps the paddle slow so
+    it does not build momentum that the integer state cannot represent. Returns an
+    INTENDED action in {NOOP, UP, DOWN}, or FIRE to serve when the ball is absent."""
     ball, py = s["ball"], s["player_y"]
     if ball is None or py is None:
         return FIRE
+    if last_exe in (UP, DOWN):
+        return NOOP                  # tap-release: no two consecutive moves
     if rng.random() < eps:
         return int(rng.choice(ACTIONS))
     target = ball[1]                 # ball y; move paddle to match it
@@ -50,7 +63,7 @@ class Episode:
 
 def collect(p, n_episodes, T=250, base_seed=0, policy_seed=0):
     """Roll n_episodes with NOOP-override wind at probability p. Returns list[Episode]."""
-    env = PongEnv()
+    env = PongEnv(frameskip=FRAMESKIP)
     prng = np.random.default_rng(policy_seed)
     episodes = []
     for ep in range(n_episodes):
@@ -59,14 +72,16 @@ def collect(p, n_episodes, T=250, base_seed=0, policy_seed=0):
         s = env.reset(seed=seed)
         states = [s]
         intended, executed = [], []
+        last_exe = NOOP
         for t in range(T):
-            a_int = behavior_policy(s, prng)
+            a_int = behavior_policy(s, prng, last_exe)
             a_exe = NOOP if wind[t] else a_int     # NOOP-override wind
             s2, _, done = env.step(a_exe)
             intended.append(int(a_int))
             executed.append(int(a_exe))
             states.append(s2)
             s = s2
+            last_exe = a_exe
             if done:
                 # pad wind so indexing stays valid if an episode ends early
                 wind = wind[: t + 1]

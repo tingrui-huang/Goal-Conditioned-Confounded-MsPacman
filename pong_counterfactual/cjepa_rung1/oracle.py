@@ -13,11 +13,13 @@ fallback, rather than ALE clone/restore.
 """
 from pong_counterfactual.env import PongEnv
 from pong_counterfactual.cjepa_rung1.noise import NOOP, state_vec
+from pong_counterfactual.cjepa_rung1.collect import FRAMESKIP
 
 
 class Oracle:
     def __init__(self):
-        self.env = PongEnv()
+        # MUST match the collection frameskip, or seed-replay won't reproduce.
+        self.env = PongEnv(frameskip=FRAMESKIP)
 
     def cf_next_state(self, seed, executed, wind, k, a_prime):
         """Replay executed[0:k] from `seed`, then take the counterfactual action at k

@@ -13,33 +13,46 @@ import numpy as np
 DIMS = ("ball_x", "ball_y", "player_y", "enemy_y")
 
 
+# Per-dim coarsening WIDTHS (skill: "a handful of bins per dim suffices"). A delta is
+# binned to the nearest multiple of width; the bin's representative delta is that
+# multiple. Coarse bins keep the learned categorical SHARP (few classes -> confident
+# softmax), so a near-deterministic dim is predicted near-deterministically and the
+# no-abduction baseline does not "win" on model softness. Ball moves in clean small
+# integers (width 1); the paddle has ~1px sub-pixel jitter, so width 2 absorbs it.
+DEFAULT_WIDTHS = (1, 1, 2, 2)  # ball_x, ball_y, player_y, enemy_y
+
+
 class Discretizer:
-    def __init__(self):
-        self.vocabs = None  # list of 4 int arrays: the distinct delta values per dim
+    def __init__(self, widths=DEFAULT_WIDTHS):
+        self.widths = tuple(widths)
+        self.vocabs = None  # list of 4 int arrays: the distinct quantized deltas per dim
+
+    def _quant(self, deltas):
+        return np.rint(np.asarray(deltas) / np.array(self.widths)).astype(int)
 
     def fit(self, states, next_states):
-        deltas = np.rint(np.asarray(next_states) - np.asarray(states)).astype(int)
-        self.vocabs = [np.array(sorted(set(deltas[:, d].tolist()))) for d in range(4)]
+        q = self._quant(np.asarray(next_states) - np.asarray(states))
+        self.vocabs = [np.array(sorted(set(q[:, d].tolist()))) for d in range(4)]
         return self
 
     def nbins(self, d):
         return len(self.vocabs[d])
 
     def to_tokens(self, state, next_state):
-        """(state, next_state) -> list of 4 bin indices (nearest bin per dim)."""
-        d = np.rint(np.asarray(next_state) - np.asarray(state)).astype(int)
-        return [int(np.argmin(np.abs(self.vocabs[i] - d[i]))) for i in range(4)]
+        """(state, next_state) -> list of 4 bin indices (nearest quantized bin per dim)."""
+        q = self._quant(np.asarray(next_state) - np.asarray(state)).reshape(-1)
+        return [int(np.argmin(np.abs(self.vocabs[i] - q[i]))) for i in range(4)]
 
     def decode(self, state, tokens):
-        """(state, 4 tokens) -> next_state = state + delta(tokens)."""
-        delta = np.array([self.vocabs[i][tokens[i]] for i in range(4)], dtype=np.float64)
+        """(state, 4 tokens) -> next_state = state + representative_delta(tokens)."""
+        delta = np.array([self.vocabs[i][tokens[i]] * self.widths[i] for i in range(4)],
+                         dtype=np.float64)
         return np.asarray(state, dtype=np.float64) + delta
 
     def coverage_report(self, states, next_states):
-        """Fraction of deltas that land EXACTLY on a vocab value (1.0 = full coverage)."""
-        deltas = np.rint(np.asarray(next_states) - np.asarray(states)).astype(int)
+        """Fraction of deltas whose quantized bin exists in the vocab (1.0 = full)."""
+        q = self._quant(np.asarray(next_states) - np.asarray(states))
         exact = []
         for i in range(4):
-            inset = np.isin(deltas[:, i], self.vocabs[i])
-            exact.append(float(inset.mean()))
+            exact.append(float(np.isin(q[:, i], self.vocabs[i]).mean()))
         return dict(zip(DIMS, exact))
