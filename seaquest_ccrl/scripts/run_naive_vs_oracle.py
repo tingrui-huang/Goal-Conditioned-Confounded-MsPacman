@@ -32,14 +32,20 @@ def main():
     ap.add_argument("--max-steps", type=int, default=600, help="env steps per eval episode")
     ap.add_argument("--temperature", type=float, default=0.0, help="0 => greedy argmax")
     ap.add_argument("--threads", type=int, default=0, help="torch CPU threads (0=auto)")
+    ap.add_argument("--seed", type=int, default=0,
+                    help="experiment seed; varies net init, batch sampling, and eval env/targets")
     ap.add_argument("--skip-train", action="store_true", help="reuse existing checkpoints")
-    ap.add_argument("--out", default="seaquest_ccrl/figure/level2_naive_vs_oracle.json")
+    ap.add_argument("--out", default=None,
+                    help="results JSON (default: seaquest_ccrl/figure/level2_seed{seed}.json)")
     args = ap.parse_args()
 
     if args.threads > 0:
         torch.set_num_threads(args.threads)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    cfg = TrainConfig(steps=args.steps)
+    # Per-seed config: distinct checkpoint dir so seeds don't clobber each other.
+    cfg = TrainConfig(steps=args.steps, seed=args.seed,
+                      ckpt_dir=f"seaquest_ccrl/checkpoints/seed{args.seed}")
+    out_path = args.out or f"seaquest_ccrl/figure/level2_seed{args.seed}.json"
 
     results = {}
     for oracle in (False, True):
@@ -53,11 +59,12 @@ def main():
             critic, ccfg, _ = load_critic(ckpt, device)
         res = evaluate(critic, ccfg, oracle, n_episodes=args.eval_episodes,
                        max_steps=args.max_steps, device=device,
-                       temperature=args.temperature)
+                       temperature=args.temperature, seed=args.seed)
         results[tag] = res
 
     gap = results["oracle"]["success_rate"] - results["naive"]["success_rate"]
     summary = {
+        "seed": args.seed,
         "steps": args.steps,
         "eval_episodes": args.eval_episodes,
         "naive_success_rate": results["naive"]["success_rate"],
@@ -65,18 +72,18 @@ def main():
         "confounding_gap": gap,
         "details": results,
     }
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    with open(args.out, "w") as f:
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w") as f:
         json.dump(summary, f, indent=2)
 
     print("\n" + "=" * 56)
-    print("  LEVEL-2 CONTRASTIVE RL  —  naive vs oracle")
+    print(f"  LEVEL-2 CONTRASTIVE RL  —  naive vs oracle  (seed {args.seed})")
     print("=" * 56)
     print(f"  naive  (masked)   success rate : {results['naive']['success_rate']:.3f}")
     print(f"  oracle (unmasked) success rate : {results['oracle']['success_rate']:.3f}")
     print(f"  confounding gap (oracle-naive) : {gap:+.3f}")
     print("=" * 56)
-    print(f"  wrote {args.out}")
+    print(f"  wrote {out_path}")
 
 
 if __name__ == "__main__":
