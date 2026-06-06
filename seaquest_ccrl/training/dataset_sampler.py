@@ -10,6 +10,11 @@ Positive sampling (acceptance check D): for a transition (s_t, a_t) sample a
 future offset k ~ Geometric(1 - gamma), set future = min(t + k, T - 1), and use
 the achieved_goal (submarine position) at that future step as the positive goal.
 Goals are positions, never pixels (check F).
+
+Performance: the whole resized dataset (~473MB at 84x84) is concatenated into
+flat tensors that live ON `device`. Sampling is then a vectorized GPU index_select
+with no per-step Python loop and no host->device frame copy -- the per-step CPU
+overhead that otherwise caps GPU throughput is gone.
 """
 import numpy as np
 import torch
@@ -25,35 +30,36 @@ class HindsightSampler:
         self.rng = rng or np.random.default_rng(cfg.seed)
         ds = SeaquestOfflineDataset(root, oracle=oracle)
 
-        self.frames = []        # list of (T,size,size,3) uint8 per episode
-        self.actions = []       # list of (T,) int64
-        self.goals = []         # list of (T,2) float32 raw pixel positions
+        frames, actions, goals, lengths = [], [], [], []
         for traj in ds.trajectories():
-            small = preprocess_frames(traj["obs"], cfg.frame_size)   # resize once
-            self.frames.append(small)
-            self.actions.append(np.asarray(traj["action"], dtype=np.int64))
-            self.goals.append(np.asarray(traj["achieved_goal"], dtype=np.float32))
-        self.lengths = np.array([len(a) for a in self.actions])
-        self.n_ep = len(self.actions)
+            frames.append(preprocess_frames(traj["obs"], cfg.frame_size))     # resize once
+            actions.append(np.asarray(traj["action"], dtype=np.int64))
+            goals.append(np.asarray(traj["achieved_goal"], dtype=np.float32))
+            lengths.append(len(actions[-1]))
+        self.lengths = np.asarray(lengths, dtype=np.int64)
+        # start index of each episode inside the concatenated arrays
+        self.offsets = np.concatenate([[0], np.cumsum(self.lengths)[:-1]]).astype(np.int64)
+        self.n_ep = len(lengths)
         self.p_geom = 1.0 - cfg.gamma
 
+        # Flat, device-resident tensors (no per-step host->device frame copy).
+        self.frames = torch.from_numpy(np.concatenate(frames, axis=0)).to(device)   # (N,H,W,3) uint8
+        self.actions = torch.from_numpy(np.concatenate(actions)).to(device)         # (N,) int64
+        self.goals = torch.from_numpy(np.concatenate(goals, axis=0)).to(device)     # (N,2) float32 raw px
+        lo = np.array([cfg.goal_x_lo, cfg.goal_y_lo], dtype=np.float32)
+        hi = np.array([cfg.goal_x_hi, cfg.goal_y_hi], dtype=np.float32)
+        self._goal_lo = torch.from_numpy(lo).to(device)
+        self._goal_span = torch.from_numpy(hi - lo).to(device)
+
     def sample(self, B: int):
-        """-> (frames uint8 (B,size,size,3), actions (B,), goals_norm (B,2)) tensors."""
-        eps = self.rng.integers(0, self.n_ep, size=B)
-        f = np.empty((B, self.cfg.frame_size, self.cfg.frame_size, 3), dtype=np.uint8)
-        a = np.empty(B, dtype=np.int64)
-        g = np.empty((B, 2), dtype=np.float32)
-        for i, e in enumerate(eps):
-            T = self.lengths[e]
-            t = self.rng.integers(0, T)
-            k = self.rng.geometric(self.p_geom)          # >= 1
-            fut = min(t + k, T - 1)
-            f[i] = self.frames[e][t]
-            a[i] = self.actions[e][t]
-            g[i] = self.goals[e][fut]
-        g = self.cfg.normalize_goal(g)
-        return (
-            torch.from_numpy(f).to(self.device),
-            torch.from_numpy(a).to(self.device),
-            torch.from_numpy(g).to(self.device),
-        )
+        """-> (frames uint8 (B,size,size,3), actions (B,), goals_norm (B,2)) on device."""
+        ep = self.rng.integers(0, self.n_ep, size=B)
+        t = self.rng.integers(0, self.lengths[ep])                 # uniform 0..T-1 per episode
+        k = self.rng.geometric(self.p_geom, size=B)                # >= 1 (hindsight offset)
+        fut = np.minimum(t + k, self.lengths[ep] - 1)
+        gt = torch.from_numpy(self.offsets[ep] + t).to(self.device)   # global index of (s_t, a_t)
+        gf = torch.from_numpy(self.offsets[ep] + fut).to(self.device)  # global index of future goal
+        frames = self.frames.index_select(0, gt)
+        actions = self.actions.index_select(0, gt)
+        goals = (self.goals.index_select(0, gf) - self._goal_lo) / self._goal_span
+        return frames, actions, goals

@@ -65,7 +65,10 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
                   f"({eval_episodes} eps)")
 
     critic.train()
-    running = 0.0
+    # accumulate loss on-device; .item() forces a CPU<->GPU sync, so do it only at
+    # log time (per-step .item() serializes execution and throttles GPU throughput).
+    running = torch.zeros((), device=device)
+    arange_B = torch.arange(cfg.batch_size, device=device)
     t0 = time.time()
     for step in range(1, cfg.steps + 1):
         frames, actions, goals = sampler.sample(cfg.batch_size)
@@ -75,13 +78,13 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
         loss.backward()
         opt.step()
 
-        running += loss.item()
+        running += loss.detach()
         if step % cfg.log_every == 0:
             with torch.no_grad():
-                acc = (logits.argmax(dim=1) == torch.arange(cfg.batch_size, device=device)).float().mean().item()
-            mean_loss = running / cfg.log_every
+                acc = (logits.argmax(dim=1) == arange_B).float().mean().item()
+            mean_loss = (running / cfg.log_every).item()
+            running.zero_()
             loss_hist.append([step, mean_loss, acc])
-            running = 0.0
             if verbose:
                 rate = step / (time.time() - t0)
                 print(f"[{tag}] step {step:6d}/{cfg.steps}  loss {mean_loss:.4f}"
