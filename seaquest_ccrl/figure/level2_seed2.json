@@ -1,0 +1,26 @@
+{
+  "seed": 2,
+  "steps": 50000,
+  "eval_episodes": 100,
+  "naive_success_rate": 0.36,
+  "oracle_success_rate": 0.32,
+  "confounding_gap": -0.03999999999999998,
+  "details": {
+    "naive": {
+      "oracle": false,
+      "success_rate": 0.36,
+      "successes": 36,
+      "n_episodes": 100,
+      "mean_min_dist": 17.36500796624015,
+      "median_steps_to_goal": 149.0
+    },
+    "oracle": {
+      "oracle": true,
+      "success_rate": 0.32,
+      "successes": 32,
+      "n_episodes": 100,
+      "mean_min_dist": 20.10023496384127,
+      "median_steps_to_goal": 65.5
+    }
+  }
+}
