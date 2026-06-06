@@ -229,3 +229,4 @@ seaquest_ccrl/data/_*/
 # Local training artifacts (regenerated per run; results are pushed to Drive in Colab)
 seaquest_ccrl/checkpoints/
 seaquest_data_raw.zip
+seaquest_ccrl/figure/_*          # scratch/test figures and json (underscore-prefixed)

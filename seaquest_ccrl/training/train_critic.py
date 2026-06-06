@@ -64,6 +64,15 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
             print(f"[{tag}] step {step:6d}  EVAL success {res['success_rate']:.3f} "
                   f"({eval_episodes} eps)")
 
+    # Mixed precision: the bottleneck is conv compute (84x84 x B=256). T4 tensor
+    # cores give ~2-3x on fp16, so use AMP on CUDA; cudnn.benchmark picks fast
+    # conv kernels. CPU path is unchanged (AMP disabled).
+    use_amp = str(device).startswith("cuda")
+    amp_device = "cuda" if use_amp else "cpu"
+    if use_amp:
+        torch.backends.cudnn.benchmark = True
+    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+
     critic.train()
     # accumulate loss on-device; .item() forces a CPU<->GPU sync, so do it only at
     # log time (per-step .item() serializes execution and throttles GPU throughput).
@@ -72,11 +81,13 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
     t0 = time.time()
     for step in range(1, cfg.steps + 1):
         frames, actions, goals = sampler.sample(cfg.batch_size)
-        logits = critic(frames, actions, goals)          # (B,B)
-        loss = bce(logits, labels).sum(dim=1).mean()      # NCE: sum candidates, mean anchors
         opt.zero_grad(set_to_none=True)
-        loss.backward()
-        opt.step()
+        with torch.autocast(device_type=amp_device, dtype=torch.float16, enabled=use_amp):
+            logits = critic(frames, actions, goals)       # (B,B)
+            loss = bce(logits, labels).sum(dim=1).mean()  # NCE: sum candidates, mean anchors
+        scaler.scale(loss).backward()
+        scaler.step(opt)
+        scaler.update()
 
         running += loss.detach()
         if step % cfg.log_every == 0:
