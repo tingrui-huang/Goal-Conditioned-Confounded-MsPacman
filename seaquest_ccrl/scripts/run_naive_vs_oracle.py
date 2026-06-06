@@ -34,7 +34,11 @@ def main():
     ap.add_argument("--threads", type=int, default=0, help="torch CPU threads (0=auto)")
     ap.add_argument("--seed", type=int, default=0,
                     help="experiment seed; varies net init, batch sampling, and eval env/targets")
-    ap.add_argument("--skip-train", action="store_true", help="reuse existing checkpoints")
+    ap.add_argument("--skip-train", action="store_true",
+                    help="reuse existing checkpoints (still re-runs eval)")
+    ap.add_argument("--ckpt-dir", default=None,
+                    help="base dir for checkpoints (per-seed subdir appended); "
+                         "point at Google Drive to persist across Colab sessions")
     ap.add_argument("--out", default=None,
                     help="results JSON (default: seaquest_ccrl/figure/level2_seed{seed}.json)")
     args = ap.parse_args()
@@ -43,8 +47,9 @@ def main():
         torch.set_num_threads(args.threads)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # Per-seed config: distinct checkpoint dir so seeds don't clobber each other.
+    ckpt_base = args.ckpt_dir or "seaquest_ccrl/checkpoints"
     cfg = TrainConfig(steps=args.steps, seed=args.seed,
-                      ckpt_dir=f"seaquest_ccrl/checkpoints/seed{args.seed}")
+                      ckpt_dir=os.path.join(ckpt_base, f"seed{args.seed}"))
     out_path = args.out or f"seaquest_ccrl/figure/level2_seed{args.seed}.json"
 
     results = {}
