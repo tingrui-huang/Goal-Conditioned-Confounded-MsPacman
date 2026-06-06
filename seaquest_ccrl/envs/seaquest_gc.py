@@ -12,6 +12,11 @@ import numpy as np
 from ocatari.core import OCAtari
 
 from seaquest_ccrl import config as C
+from seaquest_ccrl.envs._ocatari_compat import patch_ocatari_nep50
+
+# Make OCAtari's RAM extraction NumPy-NEP50-safe regardless of how ocatari was
+# installed (vendored checkout or `pip install ocatari` on Colab).
+patch_ocatari_nep50()
 
 
 def _player_pos(objects) -> Optional[Tuple[float, float]]:
