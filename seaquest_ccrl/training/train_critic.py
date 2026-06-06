@@ -9,6 +9,7 @@ Train TWICE via the `oracle` flag (naive = masked, oracle = unmasked); identical
 architecture + hyperparameters otherwise.
 """
 import os
+import json
 import time
 
 import numpy as np
@@ -22,7 +23,12 @@ from seaquest_ccrl.models.contrastive_critic import ContrastiveCritic
 
 
 def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
-          device: str = "cpu", verbose: bool = True) -> str:
+          device: str = "cpu", verbose: bool = True,
+          eval_every: int = 0, eval_episodes: int = 30,
+          eval_max_steps: int = 600) -> str:
+    """Train one critic. If eval_every > 0, periodically run goal-reaching eval to
+    build a success-rate-vs-step learning curve. Loss/diag-acc and eval curves are
+    saved next to the checkpoint as history_{tag}.json."""
     root = root or C.DATA_ROOT
     tag = "oracle" if oracle else "naive"
     torch.manual_seed(cfg.seed)
@@ -43,6 +49,21 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
         print(f"[{tag}] training: {cfg.steps} steps, B={cfg.batch_size}, "
               f"d={cfg.repr_dim}, {sampler.n_ep} episodes, device={device}")
 
+    loss_hist = []     # [[step, mean_loss, diag_acc], ...]
+    eval_hist = []      # [[step, success_rate], ...]
+
+    def run_eval(step):
+        from seaquest_ccrl.evaluation.evaluate import evaluate  # local import: avoid cycle
+        critic.eval()
+        res = evaluate(critic, cfg, oracle, n_episodes=eval_episodes,
+                       max_steps=eval_max_steps, device=device,
+                       seed=cfg.seed, verbose=False)
+        critic.train()
+        eval_hist.append([step, res["success_rate"]])
+        if verbose:
+            print(f"[{tag}] step {step:6d}  EVAL success {res['success_rate']:.3f} "
+                  f"({eval_episodes} eps)")
+
     critic.train()
     running = 0.0
     t0 = time.time()
@@ -55,18 +76,29 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
         opt.step()
 
         running += loss.item()
-        if verbose and step % cfg.log_every == 0:
+        if step % cfg.log_every == 0:
             with torch.no_grad():
                 acc = (logits.argmax(dim=1) == torch.arange(cfg.batch_size, device=device)).float().mean().item()
-            rate = step / (time.time() - t0)
-            print(f"[{tag}] step {step:6d}/{cfg.steps}  loss {running/cfg.log_every:.4f}"
-                  f"  diag-acc {acc:.3f}  {rate:.1f} it/s")
+            mean_loss = running / cfg.log_every
+            loss_hist.append([step, mean_loss, acc])
             running = 0.0
+            if verbose:
+                rate = step / (time.time() - t0)
+                print(f"[{tag}] step {step:6d}/{cfg.steps}  loss {mean_loss:.4f}"
+                      f"  diag-acc {acc:.3f}  {rate:.1f} it/s")
+        if eval_every and (step % eval_every == 0):
+            run_eval(step)
+
+    if eval_every and (not eval_hist or eval_hist[-1][0] != cfg.steps):
+        run_eval(cfg.steps)   # ensure the curve ends at the final step
 
     os.makedirs(cfg.ckpt_dir, exist_ok=True)
     path = os.path.join(cfg.ckpt_dir, f"critic_{tag}.pt")
     torch.save({"state_dict": critic.state_dict(),
                 "cfg": cfg.__dict__, "oracle": oracle}, path)
+    with open(os.path.join(cfg.ckpt_dir, f"history_{tag}.json"), "w") as f:
+        json.dump({"seed": cfg.seed, "oracle": oracle, "steps": cfg.steps,
+                   "loss": loss_hist, "eval": eval_hist}, f, indent=2)
     if verbose:
         print(f"[{tag}] saved -> {path}  ({time.time()-t0:.1f}s)")
     return path

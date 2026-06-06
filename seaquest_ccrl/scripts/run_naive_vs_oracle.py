@@ -41,6 +41,12 @@ def main():
                          "point at Google Drive to persist across Colab sessions")
     ap.add_argument("--out", default=None,
                     help="results JSON (default: seaquest_ccrl/figure/level2_seed{seed}.json)")
+    ap.add_argument("--eval-every", type=int, default=0,
+                    help="if >0, run eval every N steps to build a success-vs-step curve "
+                         "(saved as history_{tag}.json next to the checkpoint)")
+    ap.add_argument("--curve-eval-episodes", type=int, default=30,
+                    help="episodes per in-training eval point (keep small; the final "
+                         "headline eval still uses --eval-episodes)")
     args = ap.parse_args()
 
     if args.threads > 0:
@@ -60,7 +66,10 @@ def main():
             print(f"[{tag}] reusing checkpoint {ckpt}")
             critic, ccfg, _ = load_critic(ckpt, device)
         else:
-            train(oracle=oracle, cfg=cfg, device=device)
+            train(oracle=oracle, cfg=cfg, device=device,
+                  eval_every=args.eval_every,
+                  eval_episodes=args.curve_eval_episodes,
+                  eval_max_steps=args.max_steps)
             critic, ccfg, _ = load_critic(ckpt, device)
         res = evaluate(critic, ccfg, oracle, n_episodes=args.eval_episodes,
                        max_steps=args.max_steps, device=device,
