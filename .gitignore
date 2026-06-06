@@ -216,3 +216,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# IDE
+.idea/
+
+# OC_Atari editable clone (installed as dependency)
+OC_Atari/
+
+# Seaquest CCRL: data/raw is committed (small, ~20MB) so `git clone` is self-contained.
+seaquest_ccrl/data/_*/
+
+# Local training artifacts (regenerated per run; results are pushed to Drive in Colab)
+seaquest_ccrl/checkpoints/
+seaquest_data_raw.zip

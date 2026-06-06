@@ -1,0 +1,183 @@
+{
+  "game_id": "ALE/Seaquest-v5",
+  "frame_shape": [
+    210,
+    160,
+    3
+  ],
+  "oxy_mask_rect": [
+    46,
+    162,
+    69,
+    16
+  ],
+  "oxy_full_width": 63,
+  "theta": 20,
+  "eps": 8.0,
+  "seed": 0,
+  "frameskip": 4,
+  "repeat_action_probability": 0.0,
+  "depletion_noise": false,
+  "episodes": [
+    {
+      "file": "traj_0000.npz",
+      "steps": 555
+    },
+    {
+      "file": "traj_0001.npz",
+      "steps": 651
+    },
+    {
+      "file": "traj_0002.npz",
+      "steps": 518
+    },
+    {
+      "file": "traj_0003.npz",
+      "steps": 550
+    },
+    {
+      "file": "traj_0004.npz",
+      "steps": 538
+    },
+    {
+      "file": "traj_0005.npz",
+      "steps": 622
+    },
+    {
+      "file": "traj_0006.npz",
+      "steps": 555
+    },
+    {
+      "file": "traj_0007.npz",
+      "steps": 510
+    },
+    {
+      "file": "traj_0008.npz",
+      "steps": 522
+    },
+    {
+      "file": "traj_0009.npz",
+      "steps": 623
+    },
+    {
+      "file": "traj_0010.npz",
+      "steps": 538
+    },
+    {
+      "file": "traj_0011.npz",
+      "steps": 538
+    },
+    {
+      "file": "traj_0012.npz",
+      "steps": 524
+    },
+    {
+      "file": "traj_0013.npz",
+      "steps": 555
+    },
+    {
+      "file": "traj_0014.npz",
+      "steps": 554
+    },
+    {
+      "file": "traj_0015.npz",
+      "steps": 540
+    },
+    {
+      "file": "traj_0016.npz",
+      "steps": 607
+    },
+    {
+      "file": "traj_0017.npz",
+      "steps": 543
+    },
+    {
+      "file": "traj_0018.npz",
+      "steps": 589
+    },
+    {
+      "file": "traj_0019.npz",
+      "steps": 538
+    },
+    {
+      "file": "traj_0020.npz",
+      "steps": 529
+    },
+    {
+      "file": "traj_0021.npz",
+      "steps": 570
+    },
+    {
+      "file": "traj_0022.npz",
+      "steps": 570
+    },
+    {
+      "file": "traj_0023.npz",
+      "steps": 586
+    },
+    {
+      "file": "traj_0024.npz",
+      "steps": 570
+    },
+    {
+      "file": "traj_0025.npz",
+      "steps": 537
+    },
+    {
+      "file": "traj_0026.npz",
+      "steps": 507
+    },
+    {
+      "file": "traj_0027.npz",
+      "steps": 658
+    },
+    {
+      "file": "traj_0028.npz",
+      "steps": 586
+    },
+    {
+      "file": "traj_0029.npz",
+      "steps": 602
+    },
+    {
+      "file": "traj_0030.npz",
+      "steps": 510
+    },
+    {
+      "file": "traj_0031.npz",
+      "steps": 603
+    },
+    {
+      "file": "traj_0032.npz",
+      "steps": 570
+    },
+    {
+      "file": "traj_0033.npz",
+      "steps": 507
+    },
+    {
+      "file": "traj_0034.npz",
+      "steps": 519
+    },
+    {
+      "file": "traj_0035.npz",
+      "steps": 522
+    },
+    {
+      "file": "traj_0036.npz",
+      "steps": 540
+    },
+    {
+      "file": "traj_0037.npz",
+      "steps": 590
+    },
+    {
+      "file": "traj_0038.npz",
+      "steps": 545
+    },
+    {
+      "file": "traj_0039.npz",
+      "steps": 540
+    }
+  ]
+}
