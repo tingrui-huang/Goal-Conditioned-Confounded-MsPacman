@@ -22,19 +22,21 @@ from seaquest_ccrl.training.dataset_sampler import HindsightSampler
 from seaquest_ccrl.models.contrastive_critic import ContrastiveCritic
 
 
-def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
+def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
           device: str = "cpu", verbose: bool = True,
           eval_every: int = 0, eval_episodes: int = 30,
           eval_max_steps: int = 600) -> str:
     """Train one critic. If eval_every > 0, periodically run goal-reaching eval to
     build a success-rate-vs-step learning curve. Loss/diag-acc and eval curves are
     saved next to the checkpoint as history_{tag}.json."""
-    root = root or C.DATA_ROOT
+    if game is None:
+        from seaquest_ccrl.games import get_game
+        game = get_game("seaquest")
     tag = "oracle" if oracle else "naive"
     torch.manual_seed(cfg.seed)
     rng = np.random.default_rng(cfg.seed)
 
-    sampler = HindsightSampler(root, oracle=oracle, cfg=cfg, device=device, rng=rng)
+    sampler = HindsightSampler(game, oracle=oracle, cfg=cfg, device=device, rng=rng, root=root)
     critic = ContrastiveCritic(cfg.repr_dim, cfg.frame_size, cfg.nb_actions).to(device)
     opt = torch.optim.Adam(critic.parameters(), lr=cfg.lr)
     # NCE: per anchor i, sigmoid-BCE over the B candidate goals (1 positive on the
@@ -55,7 +57,7 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, root: str = None,
     def run_eval(step):
         from seaquest_ccrl.evaluation.evaluate import evaluate  # local import: avoid cycle
         critic.eval()
-        res = evaluate(critic, cfg, oracle, n_episodes=eval_episodes,
+        res = evaluate(critic, cfg, game, oracle, n_episodes=eval_episodes,
                        max_steps=eval_max_steps, device=device,
                        seed=cfg.seed, verbose=False)
         critic.train()

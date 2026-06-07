@@ -19,16 +19,15 @@ overhead that otherwise caps GPU throughput is gone.
 import numpy as np
 import torch
 
-from seaquest_ccrl.data.dataset import SeaquestOfflineDataset
 from seaquest_ccrl.models.sa_encoder import preprocess_frames
 
 
 class HindsightSampler:
-    def __init__(self, root, oracle: bool, cfg, device="cpu", rng=None):
+    def __init__(self, game, oracle: bool, cfg, device="cpu", rng=None, root=None):
         self.cfg = cfg
         self.device = device
         self.rng = rng or np.random.default_rng(cfg.seed)
-        ds = SeaquestOfflineDataset(root, oracle=oracle)
+        ds = game.make_dataset(root or game.data_root, oracle)
 
         frames, actions, goals, lengths = [], [], [], []
         for traj in ds.trajectories():

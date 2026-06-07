@@ -14,7 +14,10 @@ binding to patch is the name in `ocatari.core`.
 
 Idempotent: safe to call more than once.
 """
+import os
+import io
 import functools
+import contextlib
 
 import numpy as np
 
@@ -27,11 +30,17 @@ def patch_ocatari_nep50() -> bool:
     if getattr(orig, "_nep50_patched", False):
         return False
 
+    _sink = io.StringIO()
+
     @functools.wraps(orig)
     def detect_objects_ram(objects, ram_state, *args, **kwargs):
         if hasattr(ram_state, "astype"):
             ram_state = ram_state.astype(np.int64)
-        return orig(objects, ram_state, *args, **kwargs)
+        # Some OCAtari per-game extractors contain stray debug prints (e.g. Seaquest
+        # `print(enemy.orientation)` fires per enemy-sub per frame). Swallow stdout
+        # during extraction so collection logs stay clean (portable; no source edit).
+        with contextlib.redirect_stdout(_sink):
+            return orig(objects, ram_state, *args, **kwargs)
 
     detect_objects_ram._nep50_patched = True
     core.detect_objects_ram = detect_objects_ram

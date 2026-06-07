@@ -26,6 +26,19 @@ def _player_pos(objects) -> Optional[Tuple[float, float]]:
     return None
 
 
+def _enemies(objects):
+    """Hostile-enemy bounding boxes [(x,y,w,h), ...] (the masked confounder U).
+
+    Seaquest hostiles per OCAtari: Shark, Submarine, SurfaceSubmarine, EnemyMissile.
+    Diver/Player/PlayerMissile/oxygen/HUD are NOT hostile and stay visible.
+    """
+    boxes = []
+    for o in objects:
+        if o.category in C.HOSTILE_CATEGORIES:
+            boxes.append((int(o.x), int(o.y), int(o.w), int(o.h)))
+    return boxes
+
+
 def _oxygen(objects) -> Optional[int]:
     """Oxygen level U = filled OxygenBar width (0..OXY_FULL_WIDTH).
 
@@ -58,6 +71,7 @@ class SeaquestGCEnv:
         self.nb_actions = self.env.nb_actions
         self._last_pos: Optional[Tuple[float, float]] = None
         self._last_oxy: Optional[int] = None
+        self._lives: Optional[int] = None
 
     # -- helpers ------------------------------------------------------------
     def _frame(self) -> np.ndarray:
@@ -68,6 +82,7 @@ class SeaquestGCEnv:
         objs = [o for o in self.env.objects if o.category != "NoObject"]
         pos = _player_pos(objs)
         oxy = _oxygen(objs)
+        enemies = _enemies(objs)          # hostile bboxes (the masked confounder U)
         # carry forward last-known through transient missing frames (death/respawn)
         if pos is None:
             pos = self._last_pos
@@ -77,20 +92,23 @@ class SeaquestGCEnv:
             oxy = self._last_oxy
         else:
             self._last_oxy = oxy
-        return {"player_pos": pos, "oxygen": oxy, "done": bool(done)}
+        return {"player_pos": pos, "oxygen": oxy, "enemies": enemies,
+                "lives": self._lives, "done": bool(done)}
 
     # -- gym-ish API --------------------------------------------------------
     def reset(self, seed: Optional[int] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
-        self.env.reset(seed=seed)
+        _, info = self.env.reset(seed=seed)
         self._last_pos = None
         self._last_oxy = None
+        self._lives = info.get("lives") if isinstance(info, dict) else None
         # step a NOOP-free render: OCAtari populates objects after reset
         frame = self._frame()
         state = self._state(done=False)
         return frame, state
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict[str, Any]]:
-        _, _, term, trunc, _ = self.env.step(int(action))
+        _, _, term, trunc, info = self.env.step(int(action))
+        self._lives = info.get("lives") if isinstance(info, dict) else self._lives
         frame = self._frame()                 # UNMASKED frame (stored as-is)
         state = self._state(done=bool(term or trunc))
         reward = 0.0                           # game score DROPPED (Level 1)

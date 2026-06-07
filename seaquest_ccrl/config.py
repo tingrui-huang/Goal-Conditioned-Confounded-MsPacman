@@ -51,6 +51,28 @@ MAX_STEPS_PER_EP = 2000
 DEPLETION_NOISE = False           # locked OFF
 DATA_ROOT = "seaquest_ccrl/data/raw"
 
+# === ENEMY CONFOUNDER (Level-1 v2; ccrl-seaquest-enemy-confounder) ==========
+# Switch the confounder from oxygen to ENEMY POSITIONS. The enemy version masks
+# hostile sprites (inpainted to water, NOT black-boxed) and uses a goal-seeking,
+# enemy-avoiding demonstrator. See data/masking.apply_enemy_mask and
+# policies/scripted_behavior.EnemyAvoidingPolicy.
+ENEMY_DATA_ROOT = "seaquest_ccrl/data/raw_enemy"
+# Hostile categories OCAtari exposes for Seaquest (verified by inspection).
+HOSTILE_CATEGORIES = ("Shark", "Submarine", "SurfaceSubmarine", "EnemyMissile")
+# Background water RGB (sampled from empty mid-water; uniform across the column).
+WATER_COLOR = (0, 28, 136)
+MAX_ENEMIES = 32                  # pad per-step enemy bbox arrays to this fixed width
+# RHO = enemy avoidance radius (px) = THE enemy-confounding-strength knob (U->A).
+# Larger RHO => more detours => more of the action distribution driven by hidden
+# enemy positions. Sweep for the dose-response.
+RHO = 28
+# Oxygen mechanic: depletes ~0.12/step at depth but ACCELERATES (~5/step) below ~55,
+# while ascent to the surface takes ~30 steps. So surface EARLY and commit to a full
+# refill (hysteresis) or the sub drowns mid-ascent. Oxygen is VISIBLE => not confounded.
+OXY_SURFACE_TRIGGER = 58          # enter surfacing mode when oxygen drops below this
+OXY_REFILLED = 62                 # exit surfacing mode once oxygen back to (near) full
+ENEMY_CONTACT_PX = 12.0           # player-enemy center distance counted as "contact"
+
 
 @dataclass
 class Config:

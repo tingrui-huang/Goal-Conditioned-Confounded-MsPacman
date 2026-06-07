@@ -1,0 +1,727 @@
+{
+  "game_id": "ALE/MsPacman-v5",
+  "frame_shape": [
+    210,
+    160,
+    3
+  ],
+  "confounder": "ghost",
+  "ghost_category": "Ghost",
+  "wall_color": [
+    228,
+    111,
+    111
+  ],
+  "corridor_color": [
+    0,
+    28,
+    136
+  ],
+  "max_ghosts": 8,
+  "rho": 26.0,
+  "ghost_contact_px": 10.0,
+  "eps": 8.0,
+  "seed": 0,
+  "episodes": [
+    {
+      "file": "traj_0000.npz",
+      "steps": 1127,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.21561668145519078
+    },
+    {
+      "file": "traj_0001.npz",
+      "steps": 575,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.38956521739130434
+    },
+    {
+      "file": "traj_0002.npz",
+      "steps": 673,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.4115898959881129
+    },
+    {
+      "file": "traj_0003.npz",
+      "steps": 729,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2139917695473251
+    },
+    {
+      "file": "traj_0004.npz",
+      "steps": 585,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.03076923076923077
+    },
+    {
+      "file": "traj_0005.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.019271948608137045
+    },
+    {
+      "file": "traj_0006.npz",
+      "steps": 585,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.12307692307692308
+    },
+    {
+      "file": "traj_0007.npz",
+      "steps": 757,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.09114927344782034
+    },
+    {
+      "file": "traj_0008.npz",
+      "steps": 897,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2809364548494983
+    },
+    {
+      "file": "traj_0009.npz",
+      "steps": 663,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.20211161387631976
+    },
+    {
+      "file": "traj_0010.npz",
+      "steps": 537,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.4450651769087523
+    },
+    {
+      "file": "traj_0011.npz",
+      "steps": 789,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.14195183776932827
+    },
+    {
+      "file": "traj_0012.npz",
+      "steps": 447,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.21923937360178972
+    },
+    {
+      "file": "traj_0013.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.019271948608137045
+    },
+    {
+      "file": "traj_0014.npz",
+      "steps": 861,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2682926829268293
+    },
+    {
+      "file": "traj_0015.npz",
+      "steps": 969,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.18988648090815274
+    },
+    {
+      "file": "traj_0016.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.021413276231263382
+    },
+    {
+      "file": "traj_0017.npz",
+      "steps": 537,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.3687150837988827
+    },
+    {
+      "file": "traj_0018.npz",
+      "steps": 749,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.20160213618157544
+    },
+    {
+      "file": "traj_0019.npz",
+      "steps": 715,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.3146853146853147
+    },
+    {
+      "file": "traj_0020.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.019271948608137045
+    },
+    {
+      "file": "traj_0021.npz",
+      "steps": 493,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.4827586206896552
+    },
+    {
+      "file": "traj_0022.npz",
+      "steps": 563,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.3428063943161634
+    },
+    {
+      "file": "traj_0023.npz",
+      "steps": 483,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.12215320910973085
+    },
+    {
+      "file": "traj_0024.npz",
+      "steps": 583,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.24013722126929674
+    },
+    {
+      "file": "traj_0025.npz",
+      "steps": 465,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.23010752688172043
+    },
+    {
+      "file": "traj_0026.npz",
+      "steps": 707,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1669024045261669
+    },
+    {
+      "file": "traj_0027.npz",
+      "steps": 1223,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2583810302534751
+    },
+    {
+      "file": "traj_0028.npz",
+      "steps": 677,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1358936484490399
+    },
+    {
+      "file": "traj_0029.npz",
+      "steps": 719,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1349095966620306
+    },
+    {
+      "file": "traj_0030.npz",
+      "steps": 537,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.12104283054003724
+    },
+    {
+      "file": "traj_0031.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.021413276231263382
+    },
+    {
+      "file": "traj_0032.npz",
+      "steps": 1425,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2217543859649123
+    },
+    {
+      "file": "traj_0033.npz",
+      "steps": 599,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.32053422370617696
+    },
+    {
+      "file": "traj_0034.npz",
+      "steps": 665,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.16691729323308271
+    },
+    {
+      "file": "traj_0035.npz",
+      "steps": 991,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.29263370332996974
+    },
+    {
+      "file": "traj_0036.npz",
+      "steps": 683,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.23133235724743778
+    },
+    {
+      "file": "traj_0037.npz",
+      "steps": 995,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2904522613065327
+    },
+    {
+      "file": "traj_0038.npz",
+      "steps": 873,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.27835051546391754
+    },
+    {
+      "file": "traj_0039.npz",
+      "steps": 551,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.15063520871143377
+    },
+    {
+      "file": "traj_0040.npz",
+      "steps": 581,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2822719449225473
+    },
+    {
+      "file": "traj_0041.npz",
+      "steps": 693,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.23953823953823955
+    },
+    {
+      "file": "traj_0042.npz",
+      "steps": 657,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.3378995433789954
+    },
+    {
+      "file": "traj_0043.npz",
+      "steps": 623,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2086677367576244
+    },
+    {
+      "file": "traj_0044.npz",
+      "steps": 545,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.09174311926605505
+    },
+    {
+      "file": "traj_0045.npz",
+      "steps": 535,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.18504672897196262
+    },
+    {
+      "file": "traj_0046.npz",
+      "steps": 881,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.29511918274687854
+    },
+    {
+      "file": "traj_0047.npz",
+      "steps": 603,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.22553897180762852
+    },
+    {
+      "file": "traj_0048.npz",
+      "steps": 483,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.10766045548654245
+    },
+    {
+      "file": "traj_0049.npz",
+      "steps": 491,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.21181262729124237
+    },
+    {
+      "file": "traj_0050.npz",
+      "steps": 975,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.19897435897435897
+    },
+    {
+      "file": "traj_0051.npz",
+      "steps": 1025,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.19609756097560976
+    },
+    {
+      "file": "traj_0052.npz",
+      "steps": 569,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.27768014059753954
+    },
+    {
+      "file": "traj_0053.npz",
+      "steps": 1343,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.20104244229337304
+    },
+    {
+      "file": "traj_0054.npz",
+      "steps": 679,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.14138438880706922
+    },
+    {
+      "file": "traj_0055.npz",
+      "steps": 449,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.22939866369710468
+    },
+    {
+      "file": "traj_0056.npz",
+      "steps": 683,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1171303074670571
+    },
+    {
+      "file": "traj_0057.npz",
+      "steps": 591,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1505922165820643
+    },
+    {
+      "file": "traj_0058.npz",
+      "steps": 601,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.048252911813643926
+    },
+    {
+      "file": "traj_0059.npz",
+      "steps": 699,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.31759656652360513
+    },
+    {
+      "file": "traj_0060.npz",
+      "steps": 483,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.10144927536231885
+    },
+    {
+      "file": "traj_0061.npz",
+      "steps": 975,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.26666666666666666
+    },
+    {
+      "file": "traj_0062.npz",
+      "steps": 695,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2776978417266187
+    },
+    {
+      "file": "traj_0063.npz",
+      "steps": 873,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.11798396334478808
+    },
+    {
+      "file": "traj_0064.npz",
+      "steps": 731,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.3119015047879617
+    },
+    {
+      "file": "traj_0065.npz",
+      "steps": 877,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1459521094640821
+    },
+    {
+      "file": "traj_0066.npz",
+      "steps": 757,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.32232496697490093
+    },
+    {
+      "file": "traj_0067.npz",
+      "steps": 701,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.19258202567760344
+    },
+    {
+      "file": "traj_0068.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.019271948608137045
+    },
+    {
+      "file": "traj_0069.npz",
+      "steps": 429,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.09324009324009325
+    },
+    {
+      "file": "traj_0070.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.02569593147751606
+    },
+    {
+      "file": "traj_0071.npz",
+      "steps": 523,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.18738049713193117
+    },
+    {
+      "file": "traj_0072.npz",
+      "steps": 1435,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.22439024390243903
+    },
+    {
+      "file": "traj_0073.npz",
+      "steps": 549,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.22404371584699453
+    },
+    {
+      "file": "traj_0074.npz",
+      "steps": 467,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.021413276231263382
+    },
+    {
+      "file": "traj_0075.npz",
+      "steps": 1217,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.23336072308956451
+    },
+    {
+      "file": "traj_0076.npz",
+      "steps": 1005,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.11741293532338308
+    },
+    {
+      "file": "traj_0077.npz",
+      "steps": 687,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.22707423580786026
+    },
+    {
+      "file": "traj_0078.npz",
+      "steps": 665,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.20601503759398496
+    },
+    {
+      "file": "traj_0079.npz",
+      "steps": 875,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.11885714285714286
+    },
+    {
+      "file": "traj_0080.npz",
+      "steps": 867,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.39215686274509803
+    },
+    {
+      "file": "traj_0081.npz",
+      "steps": 901,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.15538290788013318
+    },
+    {
+      "file": "traj_0082.npz",
+      "steps": 585,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.03076923076923077
+    },
+    {
+      "file": "traj_0083.npz",
+      "steps": 903,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.13842746400885936
+    },
+    {
+      "file": "traj_0084.npz",
+      "steps": 569,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.35500878734622143
+    },
+    {
+      "file": "traj_0085.npz",
+      "steps": 643,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.24261275272161742
+    },
+    {
+      "file": "traj_0086.npz",
+      "steps": 447,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2505592841163311
+    },
+    {
+      "file": "traj_0087.npz",
+      "steps": 1025,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.23609756097560974
+    },
+    {
+      "file": "traj_0088.npz",
+      "steps": 501,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2714570858283433
+    },
+    {
+      "file": "traj_0089.npz",
+      "steps": 1075,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2027906976744186
+    },
+    {
+      "file": "traj_0090.npz",
+      "steps": 569,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1546572934973638
+    },
+    {
+      "file": "traj_0091.npz",
+      "steps": 483,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.10351966873706005
+    },
+    {
+      "file": "traj_0092.npz",
+      "steps": 635,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.19370078740157481
+    },
+    {
+      "file": "traj_0093.npz",
+      "steps": 677,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.2555391432791728
+    },
+    {
+      "file": "traj_0094.npz",
+      "steps": 797,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.164366373902133
+    },
+    {
+      "file": "traj_0095.npz",
+      "steps": 743,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.24091520861372812
+    },
+    {
+      "file": "traj_0096.npz",
+      "steps": 765,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.22745098039215686
+    },
+    {
+      "file": "traj_0097.npz",
+      "steps": 583,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.1783876500857633
+    },
+    {
+      "file": "traj_0098.npz",
+      "steps": 611,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.23076923076923078
+    },
+    {
+      "file": "traj_0099.npz",
+      "steps": 563,
+      "deaths": 3,
+      "ghost_deaths": 3,
+      "detour_frac": 0.21492007104795738
+    }
+  ]
+}

@@ -47,16 +47,23 @@ def main():
     ap.add_argument("--curve-eval-episodes", type=int, default=30,
                     help="episodes per in-training eval point (keep small; the final "
                          "headline eval still uses --eval-episodes)")
+    ap.add_argument("--game", default="seaquest", help="seaquest | mspacman")
     args = ap.parse_args()
+
+    from seaquest_ccrl.games import get_game
+    game = get_game(args.game)
 
     if args.threads > 0:
         torch.set_num_threads(args.threads)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # Per-seed config: distinct checkpoint dir so seeds don't clobber each other.
-    ckpt_base = args.ckpt_dir or "seaquest_ccrl/checkpoints"
-    cfg = TrainConfig(steps=args.steps, seed=args.seed,
+    # Goal-normalisation box + action count come from the game spec.
+    ckpt_base = args.ckpt_dir or f"{args.game}_ccrl/checkpoints"
+    gx0, gx1, gy0, gy1 = game.goal_box
+    cfg = TrainConfig(steps=args.steps, seed=args.seed, nb_actions=game.nb_actions,
+                      goal_x_lo=gx0, goal_x_hi=gx1, goal_y_lo=gy0, goal_y_hi=gy1,
                       ckpt_dir=os.path.join(ckpt_base, f"seed{args.seed}"))
-    out_path = args.out or f"seaquest_ccrl/figure/level2_seed{args.seed}.json"
+    out_path = args.out or f"{args.game}_ccrl/figure/level2_seed{args.seed}.json"
 
     results = {}
     for oracle in (False, True):
@@ -66,12 +73,12 @@ def main():
             print(f"[{tag}] reusing checkpoint {ckpt}")
             critic, ccfg, _ = load_critic(ckpt, device)
         else:
-            train(oracle=oracle, cfg=cfg, device=device,
+            train(oracle=oracle, cfg=cfg, game=game, device=device,
                   eval_every=args.eval_every,
                   eval_episodes=args.curve_eval_episodes,
                   eval_max_steps=args.max_steps)
             critic, ccfg, _ = load_critic(ckpt, device)
-        res = evaluate(critic, ccfg, oracle, n_episodes=args.eval_episodes,
+        res = evaluate(critic, ccfg, game, oracle, n_episodes=args.eval_episodes,
                        max_steps=args.max_steps, device=device,
                        temperature=args.temperature, seed=args.seed)
         results[tag] = res

@@ -9,24 +9,17 @@ The naive-vs-oracle success-rate gap is the confounding signal.
 """
 import numpy as np
 
-from seaquest_ccrl import config as C
-from seaquest_ccrl.envs.seaquest_gc import SeaquestGCEnv
-from seaquest_ccrl.data.masking import apply_oxygen_mask
 from seaquest_ccrl.evaluation.policy import ContrastiveGCPolicy
 
 
-def sample_target(rng) -> np.ndarray:
-    x = rng.uniform(*C.TARGET_X_RANGE)
-    y = rng.uniform(*C.TARGET_Y_RANGE)
-    return np.array([x, y], dtype=np.float32)
-
-
-def evaluate(critic, cfg, oracle: bool, n_episodes: int = 50,
+def evaluate(critic, cfg, game, oracle: bool, n_episodes: int = 50,
              max_steps: int = 600, eps: float = None, device: str = "cpu",
              temperature: float = 0.0, seed: int = 0, verbose: bool = True) -> dict:
-    eps = C.EPS if eps is None else eps
+    """Online goal-reaching eval in `game`'s real env. Naive critics see the
+    game's masked view (game.mask_obs), oracle critics see the unmasked frame."""
+    eps = game.eps if eps is None else eps
     rng = np.random.default_rng(seed)
-    env = SeaquestGCEnv()
+    env = game.make_env()
     policy = ContrastiveGCPolicy(critic, cfg, device=device, temperature=temperature)
 
     successes = 0
@@ -35,12 +28,12 @@ def evaluate(critic, cfg, oracle: bool, n_episodes: int = 50,
     tag = "oracle" if oracle else "naive"
     try:
         for ep in range(n_episodes):
-            target = sample_target(rng)
+            target = game.sample_target(rng)
             frame, state = env.reset(seed=int(rng.integers(1 << 30)))
             reached = False
             min_d = np.inf
             for t in range(max_steps):
-                obs = frame if oracle else apply_oxygen_mask(frame)
+                obs = frame if oracle else game.mask_obs(frame, state)
                 action = policy.act(obs, target)
                 frame, _, term, trunc, state = env.step(action)
                 pos = state["player_pos"]
@@ -80,10 +73,13 @@ def evaluate(critic, cfg, oracle: bool, n_episodes: int = 50,
 if __name__ == "__main__":
     import argparse
     from seaquest_ccrl.training.train_critic import load_critic
+    from seaquest_ccrl.games import get_game
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", required=True)
+    ap.add_argument("--game", default="seaquest")
     ap.add_argument("--episodes", type=int, default=50)
     ap.add_argument("--max-steps", type=int, default=600)
     args = ap.parse_args()
     critic, cfg, oracle = load_critic(args.ckpt)
-    evaluate(critic, cfg, oracle, n_episodes=args.episodes, max_steps=args.max_steps)
+    evaluate(critic, cfg, get_game(args.game), oracle,
+             n_episodes=args.episodes, max_steps=args.max_steps)

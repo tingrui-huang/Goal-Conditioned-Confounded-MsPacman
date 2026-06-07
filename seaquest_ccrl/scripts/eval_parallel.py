@@ -25,23 +25,24 @@ import numpy as np
 
 def _worker(payload):
     """One chunk of episodes in its own process (CPU-only to avoid CUDA+fork)."""
-    ckpt, oracle, n_eps, max_steps, seed = payload
+    ckpt, oracle, n_eps, max_steps, seed, game_name = payload
     import torch
     torch.set_num_threads(1)                       # avoid thread oversubscription
     from seaquest_ccrl.training.train_critic import load_critic
     from seaquest_ccrl.evaluation.evaluate import evaluate
+    from seaquest_ccrl.games import get_game
     critic, cfg, _ = load_critic(ckpt, device="cpu")
-    res = evaluate(critic, cfg, oracle, n_episodes=n_eps, max_steps=max_steps,
-                   device="cpu", seed=seed, verbose=False)
+    res = evaluate(critic, cfg, get_game(game_name), oracle, n_episodes=n_eps,
+                   max_steps=max_steps, device="cpu", seed=seed, verbose=False)
     # return raw counts so chunks can be summed exactly
     return res["successes"], res["n_episodes"], res["mean_min_dist"] * res["n_episodes"]
 
 
-def eval_checkpoint(ckpt, oracle, episodes, max_steps, workers):
+def eval_checkpoint(ckpt, oracle, episodes, max_steps, workers, game_name="seaquest"):
     # split episodes across workers; give each a distinct seed so targets differ
     chunks = [episodes // workers + (1 if i < episodes % workers else 0)
               for i in range(workers)]
-    payloads = [(ckpt, oracle, c, max_steps, 1000 + i)
+    payloads = [(ckpt, oracle, c, max_steps, 1000 + i, game_name)
                 for i, c in enumerate(chunks) if c > 0]
     succ = tot = dist_w = 0
     if workers == 1:
@@ -74,6 +75,7 @@ def main():
     ap.add_argument("--episodes", type=int, default=500)
     ap.add_argument("--max-steps", type=int, default=600)
     ap.add_argument("--workers", type=int, default=0, help="0 => os.cpu_count()")
+    ap.add_argument("--game", default="seaquest", help="seaquest | mspacman")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
@@ -90,7 +92,7 @@ def main():
                 print(f"  seed{s} {tag}: MISSING ({ckpt})")
                 row[tag] = None
                 continue
-            r = eval_checkpoint(ckpt, oracle, args.episodes, args.max_steps, W)
+            r = eval_checkpoint(ckpt, oracle, args.episodes, args.max_steps, W, args.game)
             row[tag] = r
             print(f"  seed{s} {tag:6s}: {r['success_rate']:.3f} +/- {r['binom_se']:.3f} "
                   f"({r['successes']}/{r['n_episodes']})")

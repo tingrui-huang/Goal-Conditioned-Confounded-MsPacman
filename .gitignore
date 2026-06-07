@@ -230,3 +230,9 @@ seaquest_ccrl/data/_*/
 seaquest_ccrl/checkpoints/
 seaquest_data_raw.zip
 seaquest_ccrl/figure/_*          # scratch/test figures and json (underscore-prefixed)
+
+# Ms. Pac-Man: commit data/raw (self-contained clone); ignore local artifacts/scratch
+mspacman_ccrl/checkpoints/
+mspacman_ccrl/data/_*/
+mspacman_ccrl/figure/_*
+mspacman_ccrl/_*

@@ -24,7 +24,7 @@ from typing import Iterator, Dict, Any, List, Optional
 import numpy as np
 
 from seaquest_ccrl import config as C
-from seaquest_ccrl.data.masking import apply_oxygen_mask, oracle as _oracle
+from seaquest_ccrl.data.masking import apply_oxygen_mask, apply_enemy_mask, oracle as _oracle
 
 
 class SeaquestOfflineDataset:
@@ -39,6 +39,15 @@ class SeaquestOfflineDataset:
                                     f"Run collect/collect_dataset.py first.")
         mpath = os.path.join(self.root, "manifest.json")
         self.manifest = json.load(open(mpath)) if os.path.exists(mpath) else None
+        # Auto-detect confounder type so the SAME loader serves oxygen (v1) and
+        # enemy (v2) datasets with an identical interface.
+        self.mode = "oxygen"
+        if self.manifest and self.manifest.get("confounder") == "enemy":
+            self.mode = "enemy"
+        else:
+            with np.load(self.files[0]) as d0:
+                if "enemy_bboxes" in d0.files:
+                    self.mode = "enemy"
 
     def __len__(self) -> int:
         return len(self.files)
@@ -47,21 +56,40 @@ class SeaquestOfflineDataset:
         return _oracle(frame) if self.oracle else apply_oxygen_mask(frame, self.mask_rect)
 
     def trajectory(self, idx: int) -> Dict[str, Any]:
-        """Load one trajectory; obs frames are masked (or oracle) per dataset mode."""
+        """Load one trajectory; obs frames are masked (or oracle) per dataset mode.
+
+        enemy mode: inpaint each stored enemy bbox to water (naive) or skip (oracle).
+        oxygen mode: zero the oxygen-bar rect (naive) or skip (oracle).
+        """
         d = np.load(self.files[idx])
         frames = d["frames"]
-        obs = np.stack([self._obs(f) for f in frames], axis=0)
-        return {
+        if self.mode == "enemy":
+            if self.oracle:
+                obs = frames.copy()
+            else:
+                bb, ne = d["enemy_bboxes"], d["n_enemies"]
+                obs = np.stack([apply_enemy_mask(frames[t], bb[t][:int(ne[t])])
+                                for t in range(len(frames))], axis=0)
+        else:
+            obs = np.stack([self._obs(f) for f in frames], axis=0)
+
+        out = {
             "obs": obs,                       # (T,210,160,3) masked or oracle
             "frames_unmasked": frames,        # (T,210,160,3) always available
             "action": d["actions"],
-            "achieved_goal": d["player_pos"],
+            "achieved_goal": d["player_pos"],  # goal label (interface unchanged)
             "oxygen": d["oxygen"],
             "done": d["done"],
             "target": d["target"],
-            "theta": int(d["theta"]) if "theta" in d else None,
             "episode_id": idx,
         }
+        # carry analysis-only fields when present (oxygen v1 or enemy v2)
+        for k in ("enemy_near", "detour", "life_lost", "min_enemy_dist",
+                  "n_enemies", "enemy_bboxes", "rho"):
+            if k in d.files:
+                out[k] = d[k]
+        out["theta"] = int(d["theta"]) if "theta" in d.files else None
+        return out
 
     def trajectories(self) -> Iterator[Dict[str, Any]]:
         for i in range(len(self.files)):
