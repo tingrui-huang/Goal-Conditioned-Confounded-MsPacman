@@ -14,13 +14,16 @@ from seaquest_ccrl.evaluation.policy import ContrastiveGCPolicy
 
 def evaluate(critic, cfg, game, oracle: bool, n_episodes: int = 50,
              max_steps: int = 600, eps: float = None, device: str = "cpu",
-             temperature: float = 0.0, seed: int = 0, verbose: bool = True) -> dict:
+             temperature: float = 0.0, seed: int = 0, verbose: bool = True,
+             policy=None) -> dict:
     """Online goal-reaching eval in `game`'s real env. Naive critics see the
-    game's masked view (game.mask_obs), oracle critics see the unmasked frame."""
+    game's masked view (game.mask_obs), oracle critics see the unmasked frame.
+    `policy` overrides the default argmax-over-critic policy (e.g. an ActorGCPolicy)."""
     eps = game.eps if eps is None else eps
     rng = np.random.default_rng(seed)
     env = game.make_env()
-    policy = ContrastiveGCPolicy(critic, cfg, device=device, temperature=temperature)
+    if policy is None:
+        policy = ContrastiveGCPolicy(critic, cfg, device=device, temperature=temperature)
 
     successes = 0
     steps_to_goal = []
