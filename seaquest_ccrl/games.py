@@ -61,8 +61,9 @@ def _mspacman() -> GameSpec:
         # naive view: inpaint the CURRENT ghost bboxes from the live env state
         mask_obs=lambda frame, state: apply_ghost_mask(frame, state.get("ghosts") or []),
         nb_actions=MC.NB_ACTIONS,
-        goal_box=(MC.TARGET_X_RANGE[0], MC.TARGET_X_RANGE[1],
-                  MC.TARGET_Y_RANGE[0], MC.TARGET_Y_RANGE[1]),
+        # goal-normalisation = ACTUAL player_pos range (measured), not the target box
+        goal_box=(MC.GOAL_X_RANGE[0], MC.GOAL_X_RANGE[1],
+                  MC.GOAL_Y_RANGE[0], MC.GOAL_Y_RANGE[1]),
         target_box=(MC.TARGET_X_RANGE, MC.TARGET_Y_RANGE),
         eps=MC.EPS,
         data_root=MC.DATA_ROOT,

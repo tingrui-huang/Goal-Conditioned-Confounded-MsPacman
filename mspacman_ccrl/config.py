@@ -38,9 +38,14 @@ GHOST_CONTACT_PX = 10.0           # player-ghost center distance counted as cont
 
 # --- Goal labeling / target sampling --------------------------------------
 EPS = 8.0                          # success radius (px)
-# Maze playfield bounds (px); refined empirically from Player position range.
+# Target-SAMPLING box (where eval/collection draw desired goals).
 TARGET_X_RANGE = (12, 148)
 TARGET_Y_RANGE = (6, 168)
+# Goal-NORMALISATION range for the g_encoder = ACTUAL player_pos min/max measured
+# from the 100-ep dataset (NOT the target box; the player roams wider). Critic is
+# sensitive to this normalisation -- using the target box squashes positions.
+GOAL_X_RANGE = (3.5, 162.5)
+GOAL_Y_RANGE = (8.0, 164.0)
 
 # --- Collection ------------------------------------------------------------
 SEED = 0
