@@ -24,8 +24,14 @@ class GameSpec:
     target_box: Tuple[Tuple[int, int], Tuple[int, int]]  # (x_range, y_range) for eval
     eps: float
     data_root: str
+    target_pool: object = None    # (N,2) reachable positions; if set, eval samples from it
 
     def sample_target(self, rng) -> np.ndarray:
+        # Prefer the reachable-target pool (on-corridor positions Pac-Man actually
+        # visited) over uniform-in-box, which lands inside maze walls (unreachable).
+        if self.target_pool is not None and len(self.target_pool) > 0:
+            return np.asarray(self.target_pool[rng.integers(len(self.target_pool))],
+                              dtype=np.float32)
         (x0, x1), (y0, y1) = self.target_box
         return np.array([rng.uniform(x0, x1), rng.uniform(y0, y1)], dtype=np.float32)
 
@@ -50,10 +56,15 @@ def _seaquest() -> GameSpec:
 
 
 def _mspacman() -> GameSpec:
+    import os
     from mspacman_ccrl import config as MC
     from mspacman_ccrl.data.dataset import MsPacmanOfflineDataset
     from mspacman_ccrl.envs.mspacman_gc import MsPacmanGCEnv
     from mspacman_ccrl.data.masking import apply_ghost_mask
+    # reachable-target pool (built by data/make_reachable_targets.py); eval samples
+    # goals Pac-Man can actually reach instead of points inside maze walls.
+    _tp = os.path.join(MC.DATA_ROOT, "reachable_targets.npy")
+    pool = np.load(_tp) if os.path.exists(_tp) else None
     return GameSpec(
         name="mspacman",
         make_dataset=lambda root, oracle: MsPacmanOfflineDataset(root, oracle=oracle),
@@ -67,6 +78,7 @@ def _mspacman() -> GameSpec:
         target_box=(MC.TARGET_X_RANGE, MC.TARGET_Y_RANGE),
         eps=MC.EPS,
         data_root=MC.DATA_ROOT,
+        target_pool=pool,
     )
 
 
