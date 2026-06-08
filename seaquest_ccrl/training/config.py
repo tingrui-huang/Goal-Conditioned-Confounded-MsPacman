@@ -22,6 +22,8 @@ class TrainConfig:
     lr: float = 3e-4               # Adam
     steps: int = 50000             # training iterations (skill target 100K; CPU-bound)
     gamma: float = 0.99            # discount for geometric future sampling
+    goal_radius: float = 0.0       # >0: in-batch goals within this px radius count as
+                                   # positives (goal-collision fix). 0 => exact-match (eye).
 
     # --- logging / eval --------------------------------------------------
     log_every: int = 200

@@ -45,7 +45,17 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
     # the critic to "predict all-negative" (diag-acc stuck at chance); summing per
     # anchor keeps each positive at full weight against its negatives.
     bce = nn.BCEWithLogitsLoss(reduction="none")
-    labels = torch.eye(cfg.batch_size, device=device)
+    labels_eye = torch.eye(cfg.batch_size, device=device)
+    # Goal-collision fix: when goal positions cluster (Pac-Man), many in-batch
+    # negatives sit within the eval radius of the positive -> false negatives ->
+    # irreducible BCE floor + capped diag-acc. If cfg.goal_radius > 0, treat ANY
+    # in-batch goal within that radius (px) as a positive (label 1), aligning the
+    # objective with "reach an eps-cell" instead of "hit the exact pixel".
+    goal_radius = float(getattr(cfg, "goal_radius", 0.0) or 0.0)
+    if goal_radius > 0:
+        _glo = torch.tensor([cfg.goal_x_lo, cfg.goal_y_lo], device=device)
+        _gspan = torch.tensor([cfg.goal_x_hi - cfg.goal_x_lo,
+                               cfg.goal_y_hi - cfg.goal_y_lo], device=device)
 
     if verbose:
         print(f"[{tag}] training: {cfg.steps} steps, B={cfg.batch_size}, "
@@ -83,6 +93,14 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
     t0 = time.time()
     for step in range(1, cfg.steps + 1):
         frames, actions, goals = sampler.sample(cfg.batch_size)
+        # build the (B,B) target: diagonal + any in-batch goal within goal_radius px
+        if goal_radius > 0:
+            with torch.no_grad():
+                raw = goals * _gspan + _glo               # de-normalize to pixels
+                D = torch.cdist(raw, raw)                  # (B,B) pairwise px dist
+                labels = (D <= goal_radius).float()        # near goals = positives
+        else:
+            labels = labels_eye
         opt.zero_grad(set_to_none=True)
         with torch.autocast(device_type=amp_device, dtype=torch.float16, enabled=use_amp):
             logits = critic(frames, actions, goals)       # (B,B)
@@ -94,7 +112,12 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
         running += loss.detach()
         if step % cfg.log_every == 0:
             with torch.no_grad():
-                acc = (logits.argmax(dim=1) == arange_B).float().mean().item()
+                pick = logits.argmax(dim=1)
+                if goal_radius > 0:                        # soft acc: pick within radius
+                    raw = goals * _gspan + _glo
+                    acc = (torch.norm(raw[pick] - raw, dim=1) <= goal_radius).float().mean().item()
+                else:
+                    acc = (pick == arange_B).float().mean().item()
             mean_loss = (running / cfg.log_every).item()
             running.zero_()
             loss_hist.append([step, mean_loss, acc])
