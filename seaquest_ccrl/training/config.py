@@ -16,6 +16,10 @@ class TrainConfig:
     repr_dim: int = 256            # d: ϕ and ψ embedding dimension
     frame_size: int = 84           # resize 210x160 -> frame_size x frame_size
     nb_actions: int = C.NB_ACTIONS  # 18 (full Seaquest action set, one-hot)
+    frame_stack: int = 1           # k stacked frames (MsPacman=4 to fix pixel-localization
+                                   # /action-blindness). MASK-then-STACK: ghosts inpainted in
+                                   # every frame for naive, so only Pac-Man motion is visible
+                                   # (no ghost-motion leak). 1 => single-frame (Seaquest).
 
     # --- optimisation ----------------------------------------------------
     batch_size: int = 256          # B positives + (B-1) in-batch negatives each

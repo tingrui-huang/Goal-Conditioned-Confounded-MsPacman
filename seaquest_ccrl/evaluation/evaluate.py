@@ -33,6 +33,8 @@ def evaluate(critic, cfg, game, oracle: bool, n_episodes: int = 50,
         for ep in range(n_episodes):
             target = game.sample_target(rng)
             frame, state = env.reset(seed=int(rng.integers(1 << 30)))
+            if hasattr(policy, "reset"):
+                policy.reset()                      # clear frame-stack buffer
             reached = False
             min_d = np.inf
             for t in range(max_steps):

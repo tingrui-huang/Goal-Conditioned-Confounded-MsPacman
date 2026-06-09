@@ -66,7 +66,7 @@ def main():
     gx0, gx1, gy0, gy1 = game.goal_box
     cfg = TrainConfig(steps=args.steps, seed=args.seed, nb_actions=game.nb_actions,
                       goal_x_lo=gx0, goal_x_hi=gx1, goal_y_lo=gy0, goal_y_hi=gy1,
-                      goal_radius=goal_radius,
+                      goal_radius=goal_radius, frame_stack=game.frame_stack,
                       ckpt_dir=os.path.join(ckpt_base, f"seed{args.seed}"))
     out_path = args.out or f"{args.game}_ccrl/figure/level2_seed{args.seed}.json"
 

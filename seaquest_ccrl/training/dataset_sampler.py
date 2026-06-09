@@ -40,11 +40,21 @@ class HindsightSampler:
         self.offsets = np.concatenate([[0], np.cumsum(self.lengths)[:-1]]).astype(np.int64)
         self.n_ep = len(lengths)
         self.p_geom = 1.0 - cfg.gamma
+        self.k_stack = max(1, int(getattr(cfg, "frame_stack", 1)))
 
         # Flat, device-resident tensors (no per-step host->device frame copy).
         self.frames = torch.from_numpy(np.concatenate(frames, axis=0)).to(device)   # (N,H,W,3) uint8
         self.actions = torch.from_numpy(np.concatenate(actions)).to(device)         # (N,) int64
         self.goals = torch.from_numpy(np.concatenate(goals, axis=0)).to(device)     # (N,2) float32 raw px
+
+        # Frame-stack indices: for each global step i, the k frame indices ending at i,
+        # CLAMPED to its episode start (no crossing episode boundaries). MASK-then-stack:
+        # frames are already masked per-view, so stacking adds only Pac-Man motion.
+        N = self.frames.shape[0]
+        ep_start = np.repeat(self.offsets, self.lengths)            # (N,) episode start per index
+        ar = np.arange(N)
+        cols = [np.maximum(ep_start, ar - (self.k_stack - 1) + j) for j in range(self.k_stack)]
+        self.stack_idx = torch.from_numpy(np.stack(cols, axis=1)).to(device)  # (N,k) oldest->newest
         lo = np.array([cfg.goal_x_lo, cfg.goal_y_lo], dtype=np.float32)
         hi = np.array([cfg.goal_x_hi, cfg.goal_y_hi], dtype=np.float32)
         self._goal_lo = torch.from_numpy(lo).to(device)
@@ -58,7 +68,13 @@ class HindsightSampler:
         fut = np.minimum(t + k, self.lengths[ep] - 1)
         gt = torch.from_numpy(self.offsets[ep] + t).to(self.device)   # global index of (s_t, a_t)
         gf = torch.from_numpy(self.offsets[ep] + fut).to(self.device)  # global index of future goal
-        frames = self.frames.index_select(0, gt)
+        if self.k_stack == 1:
+            frames = self.frames.index_select(0, gt)                  # (B,H,W,3)
+        else:
+            idx = self.stack_idx.index_select(0, gt)                  # (B,k)
+            st = self.frames[idx]                                     # (B,k,H,W,3)
+            B_, k_, H_, W_, C_ = st.shape
+            frames = st.permute(0, 2, 3, 1, 4).reshape(B_, H_, W_, k_ * C_)  # (B,H,W,3k)
         actions = self.actions.index_select(0, gt)
         goals = (self.goals.index_select(0, gf) - self._goal_lo) / self._goal_span
         return frames, actions, goals

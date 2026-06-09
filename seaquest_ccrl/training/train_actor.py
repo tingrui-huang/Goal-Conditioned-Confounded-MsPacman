@@ -32,7 +32,8 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
         p.requires_grad_(False)
     rng = np.random.default_rng(cfg.seed + 777)
     sampler = HindsightSampler(game, oracle=oracle, cfg=cfg, device=device, rng=rng)
-    actor = GoalConditionedActor(cfg.frame_size, cfg.nb_actions).to(device)
+    actor = GoalConditionedActor(cfg.frame_size, cfg.nb_actions,
+                                 getattr(cfg, "frame_stack", 1)).to(device)
     opt = torch.optim.Adam(actor.parameters(), lr=cfg.lr)
     use_amp = str(device).startswith("cuda")
     if use_amp:
@@ -84,7 +85,8 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
 def load_actor(path, device="cpu"):
     ck = torch.load(path, map_location=device, weights_only=False)
     cfg = TrainConfig(**ck["cfg"])
-    actor = GoalConditionedActor(cfg.frame_size, cfg.nb_actions).to(device)
+    actor = GoalConditionedActor(cfg.frame_size, cfg.nb_actions,
+                                 getattr(cfg, "frame_stack", 1)).to(device)
     actor.load_state_dict(ck["state_dict"])
     actor.eval()
     return actor, cfg, ck["oracle"]

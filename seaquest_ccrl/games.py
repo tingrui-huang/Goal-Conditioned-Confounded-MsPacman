@@ -25,6 +25,7 @@ class GameSpec:
     eps: float
     data_root: str
     target_pool: object = None    # (N,2) reachable positions; if set, eval samples from it
+    frame_stack: int = 1          # k stacked frames (mspacman=4 to fix pixel localization)
 
     def sample_target(self, rng) -> np.ndarray:
         # Prefer the reachable-target pool (on-corridor positions Pac-Man actually
@@ -79,6 +80,7 @@ def _mspacman() -> GameSpec:
         eps=MC.EPS,
         data_root=MC.DATA_ROOT,
         target_pool=pool,
+        frame_stack=4,   # fix pixel-localization/action-blindness (mask-then-stack)
     )
 
 

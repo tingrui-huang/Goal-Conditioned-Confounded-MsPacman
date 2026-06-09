@@ -12,11 +12,13 @@ from seaquest_ccrl.models.g_encoder import GEncoder
 
 
 class ContrastiveCritic(nn.Module):
-    def __init__(self, repr_dim: int = 256, frame_size: int = 84, nb_actions: int = 18):
+    def __init__(self, repr_dim: int = 256, frame_size: int = 84, nb_actions: int = 18,
+                 frame_stack: int = 1):
         super().__init__()
         self.frame_size = frame_size
         self.nb_actions = nb_actions
-        self.sa_encoder = SAEncoder(repr_dim, frame_size, nb_actions)
+        self.frame_stack = frame_stack
+        self.sa_encoder = SAEncoder(repr_dim, frame_size, nb_actions, frame_stack)
         self.g_encoder = GEncoder(repr_dim)
 
     # -- training: full B x B logit matrix ----------------------------------
@@ -31,16 +33,13 @@ class ContrastiveCritic(nn.Module):
 
     # -- eval: score one state against all actions for a fixed goal ---------
     @torch.no_grad()
-    def score_all_actions(self, frame_uint8: np.ndarray, goal_norm: np.ndarray,
+    def score_all_actions(self, obs_small: np.ndarray, goal_norm: np.ndarray,
                           device="cpu") -> np.ndarray:
-        """frame: (210,160,3) uint8 raw env frame; goal_norm: (2,) normalized.
-
-        Returns (nb_actions,) critic scores f(s, a, g) for every discrete action.
-        Resize/normalize handled here so eval matches training preprocessing.
-        """
+        """obs_small: ALREADY preprocessed+stacked (frame_size, frame_size, 3*frame_stack)
+        uint8 (the policy resizes & stacks). goal_norm: (2,) normalized.
+        Returns (nb_actions,) critic scores f(s, a, g) for every discrete action."""
         self.eval()
-        small = preprocess_frames(frame_uint8[None], self.frame_size)  # (1,size,size,3)
-        frames = torch.from_numpy(small).to(device).repeat(self.nb_actions, 1, 1, 1)
+        frames = torch.from_numpy(obs_small[None]).to(device).repeat(self.nb_actions, 1, 1, 1)
         actions = torch.arange(self.nb_actions, device=device)
         sa = self.sa_encoder(frames, actions)                          # (A,d)
         g = self.g_encoder(torch.as_tensor(goal_norm, dtype=torch.float32,

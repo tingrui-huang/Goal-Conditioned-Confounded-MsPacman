@@ -37,7 +37,8 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
     rng = np.random.default_rng(cfg.seed)
 
     sampler = HindsightSampler(game, oracle=oracle, cfg=cfg, device=device, rng=rng, root=root)
-    critic = ContrastiveCritic(cfg.repr_dim, cfg.frame_size, cfg.nb_actions).to(device)
+    critic = ContrastiveCritic(cfg.repr_dim, cfg.frame_size, cfg.nb_actions,
+                               getattr(cfg, "frame_stack", 1)).to(device)
     opt = torch.optim.Adam(critic.parameters(), lr=cfg.lr)
     # NCE: per anchor i, sigmoid-BCE over the B candidate goals (1 positive on the
     # diagonal + B-1 in-batch negatives), summed over candidates then meaned over
@@ -146,7 +147,8 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
 def load_critic(path: str, device: str = "cpu"):
     ckpt = torch.load(path, map_location=device, weights_only=False)
     cfg = TrainConfig(**ckpt["cfg"])
-    critic = ContrastiveCritic(cfg.repr_dim, cfg.frame_size, cfg.nb_actions).to(device)
+    critic = ContrastiveCritic(cfg.repr_dim, cfg.frame_size, cfg.nb_actions,
+                               getattr(cfg, "frame_stack", 1)).to(device)
     critic.load_state_dict(ckpt["state_dict"])
     critic.eval()
     return critic, cfg, ckpt["oracle"]

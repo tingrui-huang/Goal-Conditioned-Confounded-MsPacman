@@ -28,18 +28,21 @@ def preprocess_frames(frames_uint8: np.ndarray, size: int, chunk: int = 256) -> 
 
 
 class SAEncoder(nn.Module):
-    def __init__(self, repr_dim: int = 256, frame_size: int = 84, nb_actions: int = 18):
+    def __init__(self, repr_dim: int = 256, frame_size: int = 84, nb_actions: int = 18,
+                 frame_stack: int = 1):
         super().__init__()
         self.frame_size = frame_size
         self.nb_actions = nb_actions
+        self.frame_stack = frame_stack
+        in_ch = 3 * frame_stack            # k RGB frames concatenated on the channel axis
         # 3 conv layers, channels [32,64,128], 3x3, stride 2, padding 1, ReLU
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, stride=2, padding=1), nn.ReLU(inplace=True),
+            nn.Conv2d(in_ch, 32, kernel_size=3, stride=2, padding=1), nn.ReLU(inplace=True),
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1), nn.ReLU(inplace=True),
             nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1), nn.ReLU(inplace=True),
         )
         with torch.no_grad():
-            dummy = torch.zeros(1, 3, frame_size, frame_size)
+            dummy = torch.zeros(1, in_ch, frame_size, frame_size)
             flat = self.conv(dummy).flatten(1).shape[1]
         self.flat_dim = flat
         self.head = nn.Sequential(
