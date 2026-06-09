@@ -236,3 +236,6 @@ mspacman_ccrl/checkpoints/
 mspacman_ccrl/data/_*/
 mspacman_ccrl/figure/_*
 mspacman_ccrl/_*
+
+# A/B frame-stack diagnostic outputs (figures)
+scripts/diag_out/
