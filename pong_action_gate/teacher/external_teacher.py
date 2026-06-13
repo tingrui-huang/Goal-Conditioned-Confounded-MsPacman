@@ -23,6 +23,7 @@ import importlib
 import importlib.util
 import os
 import sys
+import types
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
@@ -37,8 +38,61 @@ _DEFAULT_TEACHER_PATH = (
 )
 
 # Transitive imports of teacher.utils that are NOT used on our inference path.
-# Stubbed only if genuinely absent; documented so the masking is never silent.
+# Real packages are preferred; a name here is stubbed ONLY if it is genuinely absent.
+# Any stub is removed from sys.modules immediately after the teacher import (narrow
+# scope) — see `_install_optional_stubs` / `_remove_stubs`.
 _OPTIONAL_STUBS = ("wandb", "omegaconf")
+
+# Stubs are kept here (even after sys.modules removal) so tests can prove that no
+# stubbed attribute was ever accessed on the inference path.
+_STUB_REGISTRY: Dict[str, "_TrackingStub"] = {}
+
+
+class _TrackingStub(types.ModuleType):
+    """A fake module that records every non-dunder attribute access.
+
+    Returns a harmless MagicMock for any access so import never breaks, while the
+    recorded `accesses` list lets a test assert the inference path never used it.
+    """
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        object.__setattr__(self, "accesses", [])
+
+    def __getattr__(self, item: str):
+        if item.startswith("__") and item.endswith("__"):
+            raise AttributeError(item)
+        self.accesses.append(item)
+        return MagicMock(name=f"{self.__name__}.{item}")
+
+
+def _install_optional_stubs() -> List[str]:
+    """Install tracking stubs for any genuinely-missing optional dep. Returns names added."""
+    added: List[str] = []
+    for name in _OPTIONAL_STUBS:
+        if name in sys.modules:
+            continue
+        try:
+            importlib.import_module(name)            # prefer the real package
+        except ImportError:
+            # reuse the same stub object across loads so its access log persists
+            stub = _STUB_REGISTRY.get(name) or _TrackingStub(name)
+            sys.modules[name] = stub
+            _STUB_REGISTRY[name] = stub
+            added.append(name)
+    return added
+
+
+def _remove_stubs(names: List[str]) -> None:
+    """Remove the fake modules we added, so they do not stay globally registered."""
+    for name in names:
+        if isinstance(sys.modules.get(name), _TrackingStub):
+            del sys.modules[name]
+
+
+def stub_accesses() -> Dict[str, List[str]]:
+    """{stub_name: [attributes accessed]} — empty lists mean the inference path never used it."""
+    return {name: list(stub.accesses) for name, stub in _STUB_REGISTRY.items()}
 
 _REQUIRED_FILES = (
     "teacher/actor_critic.py",
@@ -109,16 +163,10 @@ def load_external_teacher(force: bool = False) -> ExternalTeacher:
     # Avoid executing teacher/__init__.py (sebulba -> jax). `envs` __init__ is clean.
     _register_namespace_pkg("teacher", root / "teacher")
 
-    stubbed: List[str] = []
-    for name in _OPTIONAL_STUBS:
-        try:
-            importlib.import_module(name)
-        except ImportError:
-            sys.modules[name] = MagicMock(name=f"{name}_stub_for_teacher_import")
-            stubbed.append(name)
-
-    # Do not write .pyc/__pycache__ into the private repo: keep it strictly read-only.
-    _prev_dont_write = sys.dont_write_bytecode
+    # Install stubs ONLY for genuinely-missing optional deps, and only for the
+    # duration of the teacher import; restore global state in the finally block.
+    stubbed = _install_optional_stubs()
+    _prev_dont_write = sys.dont_write_bytecode      # do not write .pyc into the private repo
     sys.dont_write_bytecode = True
     try:
         ac = importlib.import_module("teacher.actor_critic")
@@ -132,6 +180,7 @@ def load_external_teacher(force: bool = False) -> ExternalTeacher:
         ) from exc
     finally:
         sys.dont_write_bytecode = _prev_dont_write
+        _remove_stubs(stubbed)                      # narrow scope: do not leave fakes registered
 
     provenance = {
         "ActorCritic": ac.ActorCritic.__module__ + " @ " + os.path.abspath(ac.__file__),

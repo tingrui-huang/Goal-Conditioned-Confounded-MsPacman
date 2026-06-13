@@ -16,9 +16,11 @@ import torch
 
 from pong_action_gate import config as C
 from pong_action_gate.teacher.load_teacher import TeacherPolicy, load_teacher, make_env
+from pong_action_gate.teacher import external_teacher as ET
 from pong_action_gate.teacher.external_teacher import (
     load_external_teacher,
     resolve_teacher_root,
+    stub_accesses,
 )
 from pong_action_gate.rollout import run_rollout, _seed_everything
 
@@ -65,6 +67,36 @@ def test_no_vendor_module_anywhere():
     assert not vendor_dir.exists(), f"_vendor still present at {vendor_dir}"
     with pytest.raises(ModuleNotFoundError):
         __import__("pong_action_gate.teacher._vendor.actor_critic")
+
+
+def test_no_stubbed_attribute_accessed_and_not_left_registered(teacher):
+    """Inference path never touches a stubbed dep; stubs are not left in sys.modules."""
+    import sys
+    # exercise the real inference path (load already happened; add a short rollout)
+    run_rollout(_short_cfg(seed=3))
+    for name, used in stub_accesses().items():
+        assert used == [], f"stubbed module {name!r} attribute(s) accessed on inference path: {used}"
+    # any stub we installed must have been removed again (not globally registered)
+    for name, stub in ET._STUB_REGISTRY.items():
+        assert sys.modules.get(name) is not stub, f"stub {name!r} left registered in sys.modules"
+    # omegaconf must be the REAL package, not a stub (preferred-real check)
+    import omegaconf
+    assert not isinstance(omegaconf, ET._TrackingStub)
+
+
+def test_dont_write_bytecode_restored():
+    """load_external_teacher must not leave sys.dont_write_bytecode globally changed."""
+    import sys
+    prev = sys.dont_write_bytecode
+    try:
+        sys.dont_write_bytecode = False
+        load_external_teacher(force=True)
+        assert sys.dont_write_bytecode is False
+        sys.dont_write_bytecode = True
+        load_external_teacher(force=True)
+        assert sys.dont_write_bytecode is True
+    finally:
+        sys.dont_write_bytecode = prev
 
 
 def test_private_repo_unmodified_by_import():
