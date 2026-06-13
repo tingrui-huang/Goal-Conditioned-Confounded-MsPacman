@@ -239,3 +239,13 @@ mspacman_ccrl/_*
 
 # A/B frame-stack diagnostic outputs (figures)
 scripts/diag_out/
+
+# PRIVATE teacher code — advisor shared Confounded-Agent-Distillation privately (NOT released).
+# Never push to GitHub. We copy needed pieces into our own modules and modify there.
+Confounded-Agent-Distillation-main/
+
+# Claude local memory (session context, not project code)
+memory/
+
+# Generated artifacts for the Pong action-gate phase (data/ckpts/videos/plots live outside source)
+artifacts/
