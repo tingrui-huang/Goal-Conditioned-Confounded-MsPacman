@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import warnings
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -108,9 +110,27 @@ def load_ckpt(path: Path, map_location="cpu"):
     return torch.load(path, map_location=map_location, weights_only=False)
 
 
-def latest_ckpt(d: Path):
-    cks = sorted(d.glob("ckpt_*.pt"), key=lambda p: int(p.stem.split("_")[1]))
-    return cks[-1] if cks else None
+_CKPT_RE = re.compile(r"^ckpt_(\d+)\.pt$")
+
+
+def latest_ckpt(d: Path) -> Optional[Path]:
+    """Return the checkpoint with the largest valid integer step.
+
+    Accepts ONLY filenames matching exactly `^ckpt_(\\d+)\\.pt$`. Malformed or
+    duplicate ckpt-style names (e.g. Google Drive's `ckpt_1800 (1).pt`) are ignored
+    with a clear warning; unrelated `.pt` files are skipped silently. Selection is by
+    integer step value (not lexicographic), so `ckpt_1000.pt` beats `ckpt_50.pt`.
+    """
+    valid: List[Tuple[int, Path]] = []
+    for p in Path(d).glob("*.pt"):
+        m = _CKPT_RE.match(p.name)
+        if m:
+            valid.append((int(m.group(1)), p))
+        elif p.name.startswith("ckpt_"):
+            warnings.warn(f"Ignoring malformed/duplicate checkpoint filename: {p.name!r}")
+    if not valid:
+        return None
+    return max(valid, key=lambda t: t[0])[1]
 
 
 def train(cfg: TrainConfig, resume: bool = False) -> Dict[str, Any]:
