@@ -67,3 +67,10 @@ class M1Config:
 
 # Final-task goal definition (recorded now; not exercised until later milestones).
 GOAL_STAR = 15        # d_t = agent_score - opponent_score; success if max_t d_t >= +15
+
+# Locked behavior policy for data collection (M3.6 confirmation, approved 2026-06-14):
+#   action ~ Categorical(logits = original_logits / BEHAVIOR_TEMPERATURE).sample()
+# T=2.0 chosen for substantially better score-outcome support (~10% opponent points,
+# next-outcome entropy ~0.54) while preserving win-rate 1.0, ~0.95 reach-+15, and
+# measurable sampled-policy opponent dependence.
+BEHAVIOR_TEMPERATURE = 2.0
