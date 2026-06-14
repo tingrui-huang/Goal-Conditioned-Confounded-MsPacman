@@ -57,6 +57,38 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+# --------------------------------------------------------------------------- #
+# Transition convention (explicit; proven in data/audit.py)
+# --------------------------------------------------------------------------- #
+# At index t a transition bundles a PRE-action observation and POST-action results:
+#   o_t        : pre-action observation  -> teacher_obs[t] / raw_rgb[t] / gray_learner[t]
+#                + ball/paddle coords (all the same frame the teacher saw)
+#   d_t   (pre): pre-action score difference  = score_diff[t]
+#   a_t        : sampled action  = action[t]   (selected from o_t)
+#   r_{t+1}    : resulting reward = reward[t]   (POST-action)
+#   d_{t+1}(post): post-action score difference = agent_score[t] - opp_score[t]
+#   termination: terminated[t] / truncated[t]  (after the transition)
+# is_scoring_event[t] == (reward[t] != 0) == (d_{t+1} != d_t).
+TRANSITION_CONVENTION = {
+    "o_t": "teacher_obs[t] / raw_rgb[t] / gray_learner[t] / ball,paddle coords (pre-action)",
+    "d_t_pre": "score_diff[t]",
+    "a_t": "action[t] (selected from o_t)",
+    "r_t+1": "reward[t] (post-action)",
+    "d_t+1_post": "agent_score[t] - opp_score[t]",
+    "termination": "terminated[t] / truncated[t] (after the transition)",
+}
+
+
+def score_diff_pre(ep: Dict[str, Any]) -> np.ndarray:
+    """Pre-action score difference d_t (observation-time)."""
+    return ep["score_diff"].astype(np.int64)
+
+
+def score_diff_post(ep: Dict[str, Any]) -> np.ndarray:
+    """Post-action score difference d_{t+1} = agent_score[t] - opp_score[t]."""
+    return (ep["agent_score"].astype(np.int64) - ep["opp_score"].astype(np.int64))
+
+
 def build_kstack(gray_learner: np.ndarray, idx: int, k: int = 4) -> np.ndarray:
     """k-frame stack ending at idx, oldest->newest, left-padded to the episode start.
 
