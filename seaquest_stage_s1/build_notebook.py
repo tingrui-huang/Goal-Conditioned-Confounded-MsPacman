@@ -13,7 +13,18 @@ def src(name):
     s = open(os.path.join(HERE, name), encoding="utf-8").read()
     # drop the `if __name__ == "__main__"` blocks for clean import-as-module
     s = re.split(r'\nif __name__ == "__main__":', s)[0]
-    return s.rstrip() + "\n"
+    # Modules are INLINED into the notebook (one global namespace), so intra-package
+    # imports like `from critic import one_hot` must be removed — the names are already
+    # global and resolve at call time. (No `critic` module exists in Colab.)
+    out = []
+    for line in s.split("\n"):
+        st = line.strip()
+        if st.startswith("from critic import") or st.startswith("import critic") \
+           or st.startswith("from losses import") or st.startswith("from evaluation import"):
+            out.append(" " * (len(line) - len(line.lstrip())) + "pass  # inlined: " + st)
+        else:
+            out.append(line)
+    return "\n".join(out).rstrip() + "\n"
 
 
 def md(*lines):
