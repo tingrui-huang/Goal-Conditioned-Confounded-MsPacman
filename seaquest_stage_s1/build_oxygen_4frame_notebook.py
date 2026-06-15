@@ -39,11 +39,20 @@ if not os.path.isdir(D):
 """))
 
 cells.append(code(r"""
-# 2. Point at the raw_hf you uploaded (folder with traj_*.npz + manifest.json).
-import glob
-DATA_ROOT = '/content/raw_hf'      # <-- EDIT
+# 2. Load raw_hf from Google Drive (mount + unzip + auto-locate traj_*.npz).
+import glob, os, zipfile
+from google.colab import drive
+drive.mount('/content/drive')
+ZIP = '/content/drive/MyDrive/raw_hf.zip'     # <-- EDIT if your zip is elsewhere in Drive
+assert os.path.exists(ZIP), f'zip not found at {ZIP} -- check the path in My Drive'
+EXTRACT = '/content/raw_hf_extracted'
+if not glob.glob(EXTRACT + '/**/traj_0000.npz', recursive=True):
+    with zipfile.ZipFile(ZIP) as z: z.extractall(EXTRACT)
+hits = glob.glob(EXTRACT + '/**/traj_0000.npz', recursive=True)
+assert hits, f'no traj_*.npz inside {ZIP}'
+DATA_ROOT = os.path.dirname(hits[0])          # handles a nested folder inside the zip
 n = len(glob.glob(DATA_ROOT + '/traj_*.npz'))
-print('DATA_ROOT =', DATA_ROOT, '| trajectories:', n)
+print('DATA_ROOT =', DATA_ROOT, '| trajectories:', n, '| manifest:', os.path.exists(DATA_ROOT + '/manifest.json'))
 assert n == 40, f'expected 40 traj, found {n}'
 """))
 
