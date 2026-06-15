@@ -14,13 +14,26 @@ import torch
 
 
 def _losses(h):
+    """Extract the scalar training-loss series. train() writes loss as a list of
+    [step, loss, acc] triples; also tolerate dict-rows or bare scalars."""
+    raw = None
     if isinstance(h, dict):
         for k in ("loss", "train_loss", "losses"):
             if isinstance(h.get(k), list):
-                return h[k]
-    if isinstance(h, list):
-        return [x.get("loss") if isinstance(x, dict) else x for x in h]
-    return []
+                raw = h[k]; break
+    elif isinstance(h, list):
+        raw = h
+    if raw is None:
+        return []
+    out = []
+    for x in raw:
+        if isinstance(x, (list, tuple)) and len(x) >= 2:
+            out.append(float(x[1]))          # [step, loss, acc] -> loss
+        elif isinstance(x, dict) and x.get("loss") is not None:
+            out.append(float(x["loss"]))
+        elif isinstance(x, (int, float)):
+            out.append(float(x))
+    return out
 
 
 def main():
