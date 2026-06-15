@@ -1,0 +1,7 @@
+{
+  "n_states": 67,
+  "patches_per_state": 256,
+  "est_forward_passes": 21909,
+  "smoke_panels": 3,
+  "replay_valid": true
+}

@@ -1,0 +1,1770 @@
+{
+  "n_states": 67,
+  "collect_stats": {
+    "episodes": 1,
+    "candidates": 1866,
+    "by_category_collected": {
+      "decision": 42,
+      "ordinary": 30,
+      "defensive": 20,
+      "opp_side": 24,
+      "score_restart": 12
+    },
+    "decision_by_group": {
+      "0": 16,
+      "1": 14,
+      "2": 12
+    }
+  },
+  "quotas": {
+    "decision": 21,
+    "ordinary": 15,
+    "defensive": 10,
+    "opp_side": 12,
+    "score_restart": 6
+  },
+  "states": [
+    {
+      "idx": 0,
+      "ep": 0,
+      "t": 55,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        123.0,
+        95.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 87.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 1,
+      "ep": 0,
+      "t": 58,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        135.0,
+        119.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 107.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 2,
+      "ep": 0,
+      "t": 136,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        136.0,
+        144.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 149.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 3,
+      "ep": 0,
+      "t": 236,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "NOOP",
+      "exec_semantic": "STAY",
+      "ball": [
+        126.0,
+        164.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 167.0,
+      "score": [
+        2,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 4,
+      "ep": 0,
+      "t": 316,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        135.0,
+        146.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 151.0,
+      "score": [
+        3,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 5,
+      "ep": 0,
+      "t": 424,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        133.0,
+        128.0
+      ],
+      "ball_dx": 8.0,
+      "opp_y": 127.0,
+      "score": [
+        4,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 6,
+      "ep": 0,
+      "t": 496,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        134.0,
+        148.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 153.0,
+      "score": [
+        5,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 7,
+      "ep": 0,
+      "t": 653,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        137.0,
+        139.0
+      ],
+      "ball_dx": 1.0,
+      "opp_y": 141.0,
+      "score": [
+        7,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 8,
+      "ep": 0,
+      "t": 133,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        124.0,
+        168.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 169.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 9,
+      "ep": 0,
+      "t": 165,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        125.0,
+        132.0
+      ],
+      "ball_dx": 8.0,
+      "opp_y": 131.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 10,
+      "ep": 0,
+      "t": 237,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        130.0,
+        156.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 159.0,
+      "score": [
+        2,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 11,
+      "ep": 0,
+      "t": 495,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        130.0,
+        156.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 159.0,
+      "score": [
+        5,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 12,
+      "ep": 0,
+      "t": 573,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        131.0,
+        154.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 157.0,
+      "score": [
+        6,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 13,
+      "ep": 0,
+      "t": 648,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        120.0,
+        176.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 177.0,
+      "score": [
+        7,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 14,
+      "ep": 0,
+      "t": 681,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        125.0,
+        132.0
+      ],
+      "ball_dx": 8.0,
+      "opp_y": 131.0,
+      "score": [
+        7,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 15,
+      "ep": 0,
+      "t": 906,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": true,
+        "ordinary": false
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        120.0,
+        176.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 177.0,
+      "score": [
+        10,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 16,
+      "ep": 0,
+      "t": 134,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        128.0,
+        160.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 163.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 17,
+      "ep": 0,
+      "t": 235,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        122.0,
+        172.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 173.0,
+      "score": [
+        2,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 18,
+      "ep": 0,
+      "t": 313,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        123.0,
+        170.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 171.0,
+      "score": [
+        3,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 19,
+      "ep": 0,
+      "t": 314,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        127.0,
+        162.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 165.0,
+      "score": [
+        3,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 20,
+      "ep": 0,
+      "t": 317,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        139.0,
+        138.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 143.0,
+      "score": [
+        3,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 21,
+      "ep": 0,
+      "t": 494,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        126.0,
+        164.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 167.0,
+      "score": [
+        5,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 22,
+      "ep": 0,
+      "t": 571,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        123.0,
+        170.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 171.0,
+      "score": [
+        6,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 23,
+      "ep": 0,
+      "t": 572,
+      "category": "decision",
+      "flags": {
+        "decision": true,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": false
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        127.0,
+        162.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 165.0,
+      "score": [
+        6,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 24,
+      "ep": 0,
+      "t": 45,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        83.0,
+        46.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 61.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 25,
+      "ep": 0,
+      "t": 46,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        87.0,
+        38.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 55.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 26,
+      "ep": 0,
+      "t": 47,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        91.0,
+        30.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 47.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 27,
+      "ep": 0,
+      "t": 49,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        99.0,
+        47.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 45.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 28,
+      "ep": 0,
+      "t": 51,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        107.0,
+        63.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 59.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 29,
+      "ep": 0,
+      "t": 122,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        80.0,
+        129.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 115.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 30,
+      "ep": 0,
+      "t": 125,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "NOOP",
+      "exec_semantic": "STAY",
+      "ball": [
+        92.0,
+        153.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 137.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 31,
+      "ep": 0,
+      "t": 127,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        100.0,
+        169.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 151.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 32,
+      "ep": 0,
+      "t": 128,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        104.0,
+        177.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 157.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 33,
+      "ep": 0,
+      "t": 129,
+      "category": "defensive",
+      "flags": {
+        "decision": false,
+        "defensive": true,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        108.0,
+        185.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 165.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 34,
+      "ep": 0,
+      "t": 16,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        71.0,
+        122.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 121.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 35,
+      "ep": 0,
+      "t": 18,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        63.0,
+        130.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 129.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 36,
+      "ep": 0,
+      "t": 19,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        59.0,
+        134.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 133.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 37,
+      "ep": 0,
+      "t": 20,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        55.0,
+        138.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 137.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 38,
+      "ep": 0,
+      "t": 21,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        51.0,
+        142.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 141.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 39,
+      "ep": 0,
+      "t": 23,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        43.0,
+        150.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 149.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 40,
+      "ep": 0,
+      "t": 25,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHTFIRE",
+      "exec_semantic": "UP",
+      "ball": [
+        35.0,
+        158.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 157.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 41,
+      "ep": 0,
+      "t": 27,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        27.0,
+        166.0
+      ],
+      "ball_dx": -4.0,
+      "opp_y": 165.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 42,
+      "ep": 0,
+      "t": 32,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        31.0,
+        150.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 153.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 43,
+      "ep": 0,
+      "t": 34,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        39.0,
+        134.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 139.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 44,
+      "ep": 0,
+      "t": 37,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        51.0,
+        110.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 117.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 45,
+      "ep": 0,
+      "t": 38,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        55.0,
+        102.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 111.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 46,
+      "ep": 0,
+      "t": 76,
+      "category": "score_restart",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": true,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        3.0,
+        122.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 129.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 47,
+      "ep": 0,
+      "t": 92,
+      "category": "score_restart",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": true,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        78.0,
+        113.0
+      ],
+      "ball_dx": null,
+      "opp_y": 113.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 48,
+      "ep": 0,
+      "t": 256,
+      "category": "score_restart",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": true,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        5.0,
+        111.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 121.0,
+      "score": [
+        3,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 49,
+      "ep": 0,
+      "t": 436,
+      "category": "score_restart",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": true,
+        "ordinary": true
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        9.0,
+        36.0
+      ],
+      "ball_dx": -12.0,
+      "opp_y": 47.0,
+      "score": [
+        5,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 50,
+      "ep": 0,
+      "t": 453,
+      "category": "score_restart",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": true,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        76.0,
+        111.0
+      ],
+      "ball_dx": null,
+      "opp_y": 109.0,
+      "score": [
+        5,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 51,
+      "ep": 0,
+      "t": 514,
+      "category": "score_restart",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": true,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        5.0,
+        111.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 121.0,
+      "score": [
+        6,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 52,
+      "ep": 0,
+      "t": 40,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        63.0,
+        86.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 97.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 53,
+      "ep": 0,
+      "t": 42,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "NOOP",
+      "exec_semantic": "STAY",
+      "ball": [
+        71.0,
+        70.0
+      ],
+      "ball_dx": 4.0,
+      "opp_y": 83.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 54,
+      "ep": 0,
+      "t": 60,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        131.0,
+        135.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 121.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 55,
+      "ep": 0,
+      "t": 61,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "NOOP",
+      "exec_semantic": "STAY",
+      "ball": [
+        123.0,
+        143.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 129.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 56,
+      "ep": 0,
+      "t": 62,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFT",
+      "exec_semantic": "DOWN",
+      "ball": [
+        115.0,
+        151.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 135.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 57,
+      "ep": 0,
+      "t": 63,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        107.0,
+        159.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 143.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 58,
+      "ep": 0,
+      "t": 64,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        99.0,
+        167.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 149.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 59,
+      "ep": 0,
+      "t": 65,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        91.0,
+        175.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 157.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 60,
+      "ep": 0,
+      "t": 70,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        51.0,
+        170.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 171.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 61,
+      "ep": 0,
+      "t": 71,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "NOOP",
+      "exec_semantic": "STAY",
+      "ball": [
+        43.0,
+        162.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 163.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 62,
+      "ep": 0,
+      "t": 72,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "RIGHT",
+      "exec_semantic": "UP",
+      "ball": [
+        35.0,
+        154.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 157.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 63,
+      "ep": 0,
+      "t": 74,
+      "category": "opp_side",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "LEFTFIRE",
+      "exec_semantic": "DOWN",
+      "ball": [
+        19.0,
+        138.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 143.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 64,
+      "ep": 0,
+      "t": 75,
+      "category": "ordinary",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": true,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        11.0,
+        130.0
+      ],
+      "ball_dx": -8.0,
+      "opp_y": 135.0,
+      "score": [
+        0,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 65,
+      "ep": 0,
+      "t": 77,
+      "category": "ordinary",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "FIRE",
+      "exec_semantic": "STAY",
+      "ball": [
+        null,
+        null
+      ],
+      "ball_dx": null,
+      "opp_y": 121.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    },
+    {
+      "idx": 66,
+      "ep": 0,
+      "t": 78,
+      "category": "ordinary",
+      "flags": {
+        "decision": false,
+        "defensive": false,
+        "opp_side": false,
+        "score_restart": false,
+        "ordinary": true
+      },
+      "exec_action": "NOOP",
+      "exec_semantic": "STAY",
+      "ball": [
+        null,
+        null
+      ],
+      "ball_dx": null,
+      "opp_y": 115.0,
+      "score": [
+        1,
+        0
+      ],
+      "has_window": true
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "k=25": {
+    "n_query": 800,
+    "mean_groups_present": 2.8875,
+    "mean_minority_count": 2.8025,
+    "frac_all3_groups": 0.88875,
+    "frac_ge2_groups": 0.99875,
+    "mean_local_norm_entropy": 0.7561064740544446
+  },
+  "k=50": {
+    "n_query": 800,
+    "mean_groups_present": 2.98125,
+    "mean_minority_count": 6.24125,
+    "frac_all3_groups": 0.98125,
+    "frac_ge2_groups": 1.0,
+    "mean_local_norm_entropy": 0.7964018337221248
+  },
+  "cross_action_nn": {
+    "STAY": {
+      "n": 261,
+      "same_action_dist": 0.20633596491653755,
+      "cross_action_dist": 0.21251619437029123,
+      "cross_over_same_ratio": 1.0299522597832196
+    },
+    "UP": {
+      "n": 226,
+      "same_action_dist": 0.22072256928585834,
+      "cross_action_dist": 0.2235541657058443,
+      "cross_over_same_ratio": 1.0128287533817621
+    },
+    "DOWN": {
+      "n": 313,
+      "same_action_dist": 0.20070879752319573,
+      "cross_action_dist": 0.22283139300101554,
+      "cross_over_same_ratio": 1.1102223452115534
+    }
+  },
+  "overall_cross_over_same_ratio": 1.0510011194588451
+}

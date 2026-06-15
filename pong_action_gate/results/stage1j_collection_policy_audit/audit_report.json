@@ -1,0 +1,107 @@
+{
+  "teacher_action_path": "logits,_,(hx,cx)=model.predict_act_value(obs[:,4:7],(hx,cx)); a=Categorical(logits=logits / BEHAVIOR_TEMPERATURE).sample()",
+  "temperature_T": 2.0,
+  "temperature_location": "logits / T before Categorical",
+  "sampling": "categorical (NOT argmax)",
+  "recurrent_advance": "predict_act_value called every step on obs[:,4:7]; hidden advances from observation only (independent of which action is executed)",
+  "teacher_obs_slice": [
+    4,
+    7
+  ],
+  "ale_action_meanings": [
+    "NOOP",
+    "FIRE",
+    "RIGHT",
+    "LEFT",
+    "RIGHTFIRE",
+    "LEFTFIRE"
+  ],
+  "n_actions": 6,
+  "semantic_groups": {
+    "STAY": [
+      0,
+      1
+    ],
+    "UP": [
+      2,
+      4
+    ],
+    "DOWN": [
+      3,
+      5
+    ]
+  },
+  "canonical_per_group": {
+    "STAY": 0,
+    "UP": 2,
+    "DOWN": 3
+  },
+  "alias_note": "STAY=NOOP/FIRE, UP=RIGHT/RIGHTFIRE, DOWN=LEFT/LEFTFIRE; no UPFIRE/DOWNFIRE. Uniform over 6 EXACT actions => equal mass on the 3 groups (2 aliases each).",
+  "reset_life": {
+    "done_on_life_loss": false,
+    "note": "Pong has no ALE lives; episodes end on game over / truncation"
+  },
+  "frame_skip": 4,
+  "num_stack": 4,
+  "img_size": 64,
+  "decision_state_selector": "ball_present & ball moving right (dx>0) & ball_x>=120 (Stage-1F/1H clone selector; ball-only, computable from S)",
+  "learner_visible_S": {
+    "cols": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      10
+    ],
+    "names": [
+      "ball_x",
+      "ball_y",
+      "ball_present",
+      "ball_dx",
+      "ball_dy",
+      "player_y",
+      "player_dy",
+      "score_diff"
+    ]
+  },
+  "hidden_U": {
+    "cols": [
+      7,
+      8,
+      9
+    ],
+    "names": [
+      "opp_y",
+      "opp_present",
+      "opp_dy"
+    ],
+    "role": "confounder/masking target (full-obs teacher sees it; learner will not)"
+  },
+  "existing_exploration_in_action_path": false,
+  "teacher_meta_audit_only": {
+    "ckpt_sha256": "addd34bd91f8c8e9c5c7f954c873d4db9fb42440c9028e93bf5e434c5ecb9042",
+    "n_params": 3230663,
+    "arch": {
+      "lstm_dim": 512,
+      "img_channels": 3,
+      "img_size": 64,
+      "channels": [
+        32,
+        32,
+        64,
+        64
+      ],
+      "down": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "num_actions": 6
+    }
+  },
+  "note": "epsilon is the ONLY changed mechanism; teacher config hash identical across epsilon."
+}

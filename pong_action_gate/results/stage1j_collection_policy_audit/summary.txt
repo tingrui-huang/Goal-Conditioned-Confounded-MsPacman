@@ -1,0 +1,22 @@
+Stage-1J collection-policy audit (global epsilon-mixture; T=2 teacher unchanged). EVAL-ONLY branches.
+S=learner-visible(no opponent), U=opponent paddle. decision selector = ball approaching & near paddle.
+
+metric                                           0.0         0.1         0.2
+state_only_action_acc_decision                0.9116      0.7835      0.7123
+norm_local_entropy_k50                        0.3796      0.6947      0.7964
+frac_neighborhoods_all3_groups_k50            0.3125      0.9012      0.9812
+frac_min_prop_lt0.05_decision                 0.8729      0.3921      0.1037
+cross_action_nn_ratio                         2.8615      1.2697      1.0510
+win_rate                                      1.0000      0.9167      0.2333
+reach15_rate                                  0.9667      0.0833      0.0000
+avg_return                                   19.3000      7.2500     -4.0333
+mean_rally                                   81.2126     76.1035     71.7292
+U_added_nll_improvement_decision             -0.0024      0.0020     -0.0056
+U_added_acc_improvement_decision             -0.0032     -0.0014     -0.0006
+H12_branch_diversity_gt1                      0.7500      0.5875      0.5000
+H16_branch_diversity_gt1                      0.6875      0.5750      0.5256
+H12_branch_decoder_acc                        0.7667      0.6167      0.5598
+H16_branch_decoder_acc                        0.7417      0.6062      0.5577
+
+OUTCOME D: no tested epsilon acceptable  (selected epsilon = None)
+baseline state-only DECISION action acc (eps=0): 0.912

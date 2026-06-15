@@ -1,0 +1,21 @@
+{
+  "grid_max_js_T2": {
+    "mean": 0.28564626865671644,
+    "median": 0.1479,
+    "ci95": [
+      0.22356518656716418,
+      0.35088608208955224
+    ],
+    "n": 67
+  },
+  "grid_max_js_T1": {
+    "mean": 0.4029537313432836,
+    "median": 0.2599,
+    "ci95": [
+      0.32563067164179105,
+      0.479713171641791
+    ],
+    "n": 67
+  },
+  "note": "same raw logits; T applied only at softmax. T2 is the behavior policy used for collection."
+}

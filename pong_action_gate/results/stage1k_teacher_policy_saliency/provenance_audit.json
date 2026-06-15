@@ -1,0 +1,96 @@
+{
+  "checkpoint": {
+    "path": "C:\\Users\\trhua\\.cache\\huggingface\\hub\\models--eloialonso--diamond\\snapshots\\5d4abca9af6ab1b3ab1c6fc228cacb7281130f7f\\atari_100k\\models\\Pong.pt",
+    "sha256": "addd34bd91f8c8e9c5c7f954c873d4db9fb42440c9028e93bf5e434c5ecb9042",
+    "n_params": 3230663,
+    "source": "HuggingFace eloialonso/diamond Pong.pt"
+  },
+  "teacher_provenance": {
+    "ActorCritic": "teacher.actor_critic @ D:\\Users\\trhua\\Research\\Goal-Conditioned-Confounded-MsPacman\\Confounded-Agent-Distillation-main\\Confounded-Agent-Distillation-main\\teacher\\actor_critic.py",
+    "ActorCriticConfig": "teacher.actor_critic",
+    "extract_state_dict": "teacher.utils @ D:\\Users\\trhua\\Research\\Goal-Conditioned-Confounded-MsPacman\\Confounded-Agent-Distillation-main\\Confounded-Agent-Distillation-main\\teacher\\utils.py",
+    "make_atari_env": "envs.env @ D:\\Users\\trhua\\Research\\Goal-Conditioned-Confounded-MsPacman\\Confounded-Agent-Distillation-main\\Confounded-Agent-Distillation-main\\envs\\env.py",
+    "TorchEnv": "envs.env",
+    "AtariPreprocessing": "envs.atari_preprocessing @ D:\\Users\\trhua\\Research\\Goal-Conditioned-Confounded-MsPacman\\Confounded-Agent-Distillation-main\\Confounded-Agent-Distillation-main\\envs\\atari_preprocessing.py"
+  },
+  "teacher_root": "D:\\Users\\trhua\\Research\\Goal-Conditioned-Confounded-MsPacman\\Confounded-Agent-Distillation-main\\Confounded-Agent-Distillation-main",
+  "stubbed": [
+    "wandb"
+  ],
+  "input_tensor": {
+    "full_obs_shape": [
+      1,
+      7,
+      64,
+      64
+    ],
+    "teacher_input": "obs[:,4:7] (latest RGB frame)",
+    "shape": [
+      1,
+      3,
+      64,
+      64
+    ],
+    "dtype": "float32",
+    "range": "~[-1,1] (x/255*2-1)",
+    "channel_order": "RGB",
+    "frame_stack": "NONE for teacher (single frame); ch0-3 are grayscale stack used only by student/sebulba",
+    "resize": "cv2.resize 210x160->64x64 INTER_AREA, NO crop -> x64=x_nat*0.4, y64=y_nat*0.305"
+  },
+  "recurrent_state": {
+    "hx_cx_shape": [
+      1,
+      512
+    ],
+    "lstm_dim": 512,
+    "reset": "zeros at episode start (None->zeros)",
+    "semantics": "predict_act_value(obs, (hx,cx)) takes PRE-forward hidden, returns POST-forward hidden; saliency varies obs with pre-forward hidden fixed"
+  },
+  "logits": {
+    "shape": [
+      1,
+      6
+    ],
+    "ale_mapping": [
+      "NOOP",
+      "FIRE",
+      "RIGHT",
+      "LEFT",
+      "RIGHTFIRE",
+      "LEFTFIRE"
+    ],
+    "semantic_groups": {
+      "0": [
+        0,
+        1
+      ],
+      "1": [
+        2,
+        4
+      ],
+      "2": [
+        3,
+        5
+      ]
+    }
+  },
+  "sampling": "Categorical(logits / BEHAVIOR_TEMPERATURE).sample()  (T applied to logits before sampling)",
+  "temperature": {
+    "T_behavior": 2.0,
+    "raw_policy_is_T1": true,
+    "T_location": "logits/T before softmax/sample; forward pass identical for T1/T2"
+  },
+  "epsilon_in_teacher": false,
+  "upstream_saliency": {
+    "exists": true,
+    "file": "D:\\Users\\trhua\\Research\\Goal-Conditioned-Confounded-MsPacman\\Confounded-Agent-Distillation-main\\Confounded-Agent-Distillation-main\\saliency\\saliency.py",
+    "method": "Greydanus-2017 occlusion: I*(1-m)+gaussian_filter(I,sigma=3)*m, get_mask circular, score_frame density-grid, score=0.5*||L-l||^2 on raw logits",
+    "params_used_upstream_pong": {
+      "radius": 4,
+      "density": 4,
+      "mode": "actor/critic"
+    },
+    "reuse": "perturbation/mask/density/sigma reused EXACTLY; PRIMARY score changed to semantic-JS (+ full metric suite); upstream logit-L2 kept as secondary"
+  },
+  "deviation_from_upstream": "score metric only (semantic JS primary vs upstream logit-L2); perturbation, mask, grid, recurrent handling identical"
+}

@@ -1,0 +1,8 @@
+{
+  "n_states": 20,
+  "max_abs_logit_diff": 0.0,
+  "mean_sem_prob_l1": 0.0,
+  "top1_agreement_rate": 1.0,
+  "valid": true,
+  "tolerance": 0.0001
+}

@@ -1,0 +1,40 @@
+{
+  "n_clone_states": 80,
+  "censor_rate": 0.026041666666666668,
+  "per_horizon": {
+    "12": {
+      "n_usable": 78,
+      "diversity_ratio_median": 0.96199169754982,
+      "frac_diversity_gt1": 0.5,
+      "median_cross_action_distance": 80.43030548095703,
+      "frac_nonzero_distance": 0.6282051282051282,
+      "decoder_accuracy": {
+        "mean": 0.5598290598290598,
+        "median": 0.5,
+        "std": 0.2474576699453577,
+        "ci95": [
+          0.5064102564102565,
+          0.6153846153846153
+        ]
+      },
+      "decoder_baseline": 0.3333333333333333
+    },
+    "16": {
+      "n_usable": 78,
+      "diversity_ratio_median": 1.0753256678581238,
+      "frac_diversity_gt1": 0.5256410256410257,
+      "median_cross_action_distance": 80.26536178588867,
+      "frac_nonzero_distance": 0.6282051282051282,
+      "decoder_accuracy": {
+        "mean": 0.5576923076923077,
+        "median": 0.5,
+        "std": 0.23844660370473153,
+        "ci95": [
+          0.5064102564102564,
+          0.608974358974359
+        ]
+      },
+      "decoder_baseline": 0.3333333333333333
+    }
+  }
+}

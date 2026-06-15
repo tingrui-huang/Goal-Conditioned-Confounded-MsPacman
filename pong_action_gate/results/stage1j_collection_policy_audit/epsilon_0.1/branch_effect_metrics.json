@@ -1,0 +1,40 @@
+{
+  "n_clone_states": 80,
+  "censor_rate": 0.0,
+  "per_horizon": {
+    "12": {
+      "n_usable": 80,
+      "diversity_ratio_median": 4.741042613983154,
+      "frac_diversity_gt1": 0.5875,
+      "median_cross_action_distance": 91.01097106933594,
+      "frac_nonzero_distance": 0.7,
+      "decoder_accuracy": {
+        "mean": 0.6166666666666666,
+        "median": 0.6666666666666666,
+        "std": 0.2420973174388992,
+        "ci95": [
+          0.5645833333333333,
+          0.6708333333333333
+        ]
+      },
+      "decoder_baseline": 0.3333333333333333
+    },
+    "16": {
+      "n_usable": 80,
+      "diversity_ratio_median": 2.3224984407424927,
+      "frac_diversity_gt1": 0.575,
+      "median_cross_action_distance": 84.08121109008789,
+      "frac_nonzero_distance": 0.7125,
+      "decoder_accuracy": {
+        "mean": 0.60625,
+        "median": 0.6666666666666666,
+        "std": 0.23010225685792632,
+        "ci95": [
+          0.55625,
+          0.6583333333333334
+        ]
+      },
+      "decoder_baseline": 0.3333333333333333
+    }
+  }
+}

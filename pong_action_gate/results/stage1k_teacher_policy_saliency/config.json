@@ -1,0 +1,15 @@
+{
+  "seed": 30000,
+  "quotas": {
+    "decision": 21,
+    "ordinary": 15,
+    "defensive": 10,
+    "opp_side": 12,
+    "score_restart": 6
+  },
+  "radius": 4,
+  "density": 4,
+  "blur_sigma": 3,
+  "T_behavior": 2.0,
+  "checkpoint_sha256": "addd34bd91f8c8e9c5c7f954c873d4db9fb42440c9028e93bf5e434c5ecb9042"
+}

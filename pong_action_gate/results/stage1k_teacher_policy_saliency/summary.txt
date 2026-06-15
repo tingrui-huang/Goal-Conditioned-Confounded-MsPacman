@@ -1,0 +1,29 @@
+Stage-1K teacher policy saliency (perturbation; upstream Greydanus occlusion, semantic-JS primary).
+checkpoint sha addd34bd91f8c8e9 | replay valid: True (max logit diff 0.00e+00)
+states=67 radius=4 density=4 T_behavior=2.0
+
+REGION SUMMARY (T2 semantic JS, base-2; bootstrap over states):
+region                                         T2_JS            rel_background             top1_flip
+Ball ！ all                    0.2163 [0.1662,0.2737]    0.2163 [0.1662,0.2737]0.4769 [0.3688,0.6000]
+Own paddle ！ all              0.0481 [0.0287,0.0698]    0.0481 [0.0287,0.0698]0.1791 [0.0896,0.2836]
+Opponent ！ all                0.0081 [0.0030,0.0169]    0.0081 [0.0030,0.0169]0.0746 [0.0149,0.1493]
+Opponent ！ opp-side           0.0144 [0.0038,0.0325]    0.0144 [0.0038,0.0325]0.1290 [0.0323,0.2581]
+Opponent ！ decision           0.0008 [0.0002,0.0018]    0.0008 [0.0002,0.0018]0.0000 [0.0000,0.0000]
+Scoreboard ！ all              0.0301 [0.0105,0.0608]    0.0301 [0.0105,0.0608]0.1642 [0.0746,0.2537]
+Scoreboard ！ restart          0.0224 [0.0013,0.0631]    0.0224 [0.0013,0.0631]0.1429 [0.0000,0.4286]
+Empty background              0.0000 [0.0000,0.0000]    0.0000 [0.0000,0.0000]0.0000 [0.0000,0.0000]
+
+TEMPORAL OPPONENT (semantic JS by K):
+  opponent K=1: 0.0098 CI[0.0036, 0.0207]
+  opponent K=4: 0.0102 CI[0.0038, 0.0211]
+  opponent K=8: 0.0102 CI[0.0039, 0.0211]
+  opponent K=16: 0.0103 CI[0.0039, 0.0213]
+
+recurrent ablation: zero-hidden JS 0.0351 (recurrent dependence weak)
+
+OUTCOME B ！ TEMPORAL_OR_LOCAL_OPPONENT_DEPENDENCE
+  global instantaneous opponent effect weak/small; opponent matters locally or via recurrent history
+
+Downstream: integration_valid=True plausible_expert=True uses_opponent=True uses_scoreboard=True dependence=instantaneous
+  recommendation: keep teacher; redefine U (opponent history/velocity/region pixels/recurrent ctx)
+  agrees with Stage-1J ~0 U gain: False | resume critic now: False
