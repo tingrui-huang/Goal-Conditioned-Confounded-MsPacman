@@ -40,12 +40,19 @@ class GameSpec:
 def _seaquest() -> GameSpec:
     from seaquest_ccrl import config as SC
     from seaquest_ccrl.data.dataset import SeaquestOfflineDataset
-    from seaquest_ccrl.envs.seaquest_gc import SeaquestGCEnv
     from seaquest_ccrl.data.masking import apply_oxygen_mask
+
+    # LAZY env import: SeaquestGCEnv pulls in OCAtari, which is only needed for the live
+    # env (eval/collection), NOT for offline critic training or the action-use diagnostic.
+    # Deferring it lets get_game('seaquest') run where OCAtari is unavailable (e.g. Colab).
+    def _make_env():
+        from seaquest_ccrl.envs.seaquest_gc import SeaquestGCEnv
+        return SeaquestGCEnv()
+
     return GameSpec(
         name="seaquest",
         make_dataset=lambda root, oracle: SeaquestOfflineDataset(root, oracle=oracle),
-        make_env=lambda: SeaquestGCEnv(),
+        make_env=_make_env,
         mask_obs=lambda frame, state: apply_oxygen_mask(frame),
         nb_actions=SC.NB_ACTIONS,
         goal_box=(SC.TARGET_X_RANGE[0], SC.TARGET_X_RANGE[1],
