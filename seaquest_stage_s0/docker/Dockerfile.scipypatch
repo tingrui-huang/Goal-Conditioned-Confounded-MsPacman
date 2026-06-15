@@ -1,0 +1,2 @@
+FROM seaquest-s0:jax325
+RUN pip install --no-cache-dir "scipy==1.10.1"

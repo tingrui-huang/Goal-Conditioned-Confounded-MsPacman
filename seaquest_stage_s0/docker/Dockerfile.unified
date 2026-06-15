@@ -1,0 +1,52 @@
+# Unified Seaquest Stage-S0 Linux image: legacy JAX/EnvPool teacher + OCAtari.
+#
+# Rationale: forced-first-action BRANCHES (Section 17) require the teacher and the
+# clone/restore-able OCAtari/ALE env in the SAME process (per-step interleaving).
+# numpy 1.24.2 simultaneously (a) satisfies jax 0.3.25 and (b) avoids the OCAtari
+# Seaquest RAM-extractor uint8 overflow that numpy>=2 raises.
+#
+# Declared deviations (see teacher/candidate_manifest.json):
+#   jax/jaxlib 0.3.25 (both candidates) ; envpool 0.8.4 (lock wanted 0.8.1, no cp39
+#   wheel) ; ale-py provided for OCAtari branching is a modern version (>=0.8) which
+#   differs from the teacher-training ale-py 0.7.4 — but the TEACHER never uses ale-py
+#   (envpool is self-contained); ale-py is used ONLY by the OCAtari branch env.
+FROM python:3.9-slim-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONUNBUFFERED=1 \
+    XLA_FLAGS="--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=1" \
+    JAX_PLATFORMS=cpu
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates libgomp1 git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade "pip==24.0" "setuptools<70" wheel
+
+# 1) Legacy teacher stack (jaxlib from Google bucket; envpool from PyPI cp39).
+RUN pip install \
+        --find-links https://storage.googleapis.com/jax-releases/jax_releases.html \
+        "numpy==1.24.2" \
+        "jaxlib==0.3.25" "jax==0.3.25" \
+        "flax==0.6.0" "optax==0.1.3" "chex==0.1.5" \
+        "gym==0.23.1" \
+        "envpool==0.8.4" \
+        "opencv-python-headless==4.7.0.68" \
+        "scipy==1.10.1" \
+        "msgpack" "tensorstore==0.1.28" "rich<12" "PyYAML" "typing_extensions==4.4.0"
+
+# 2) OCAtari branch env. ale-py 0.8.1 + AutoROM ROMs + gymnasium. Pin numpy back to
+#    1.24.2 last in case a dep bumps it.
+RUN pip install \
+        "ale-py==0.8.1" \
+        "gymnasium==0.28.1" \
+        "AutoROM==0.6.1" "AutoROM.accept-rom-license==0.6.1" \
+        "ocatari==2.0.0" \
+    ; pip install "numpy==1.24.2"
+
+# Install Atari ROMs for ale-py (Seaquest).
+RUN AutoROM --accept-license || true
+
+WORKDIR /work
+CMD ["python", "-c", "import jax,flax,envpool,numpy,ale_py; print('jax',jax.__version__,'envpool',envpool.__version__,'numpy',numpy.__version__,'ale_py',ale_py.__version__)"]

@@ -1,0 +1,5 @@
+FROM seaquest-s0:ocatari
+RUN pip install --no-cache-dir \
+      "pygame==2.5.2" "pyfiglet==1.0.2" "seaborn==0.12.2" \
+      "scikit-learn==1.3.2" "keyboard==0.13.5" \
+    ; pip install --no-cache-dir "numpy==1.24.2"

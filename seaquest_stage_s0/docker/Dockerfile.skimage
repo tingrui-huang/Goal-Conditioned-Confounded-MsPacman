@@ -1,0 +1,2 @@
+FROM seaquest-s0:ocatari
+RUN pip install --no-cache-dir "scikit-image==0.21.0" && pip install --no-cache-dir "numpy==1.24.2"
