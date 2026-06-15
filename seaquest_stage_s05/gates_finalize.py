@@ -151,8 +151,8 @@ def main():
     # stamp
     n = 0
     for p in glob.glob(f"{BASE}/**/*.json", recursive=True):
-        if os.path.basename(p).startswith("_"):
-            continue
+        if os.path.basename(p).startswith("_") or "superseded_pre_adapter_rerun" in p:
+            continue  # never mutate the archived superseded run
         d = load(p)
         if isinstance(d, dict):
             d.setdefault("_provenance", P); json.dump(d, open(p, "w"), indent=2); n += 1
