@@ -1,0 +1,96 @@
+{
+  "n_ordinary": 150,
+  "split": {
+    "train": 105,
+    "val": 22,
+    "test": 23
+  },
+  "by_horizon": {
+    "12": {
+      "frac_diversity_gt1_ordinary": 0.02,
+      "within_state_top1": {
+        "point": 0.31884057971014484,
+        "median": 0.3333333333333333,
+        "ci95": [
+          0.289855072463768,
+          0.3333333333333332
+        ],
+        "ci_excludes_baseline": false
+      },
+      "pairwise": {
+        "point": 0.4855072463768116,
+        "median": 0.5,
+        "ci95": [
+          0.4565217391304347,
+          0.5
+        ],
+        "ci_excludes_baseline": false
+      },
+      "margin": {
+        "point": -0.03407928720116615,
+        "median": 0.0,
+        "ci95": [
+          -0.10223786532878876,
+          5.470957908926266e-09
+        ],
+        "ci_excludes_baseline": false
+      },
+      "by_diversity": {
+        "high_div_margin": -0.07125668972730637,
+        "low_div_margin": -2.069605820054221e-09,
+        "high_div_top1": 0.30303030303030304,
+        "low_div_top1": 0.3333333333333333,
+        "div_median": 4.440892098500626e-06
+      },
+      "gate": {
+        "strict_pass": false,
+        "weakly_positive": false,
+        "label": "FAIL"
+      },
+      "n_test_branches": 207
+    },
+    "16": {
+      "frac_diversity_gt1_ordinary": 0.013333333333333334,
+      "within_state_top1": {
+        "point": 0.31884057971014484,
+        "median": 0.3333333333333333,
+        "ci95": [
+          0.289855072463768,
+          0.3333333333333332
+        ],
+        "ci_excludes_baseline": false
+      },
+      "pairwise": {
+        "point": 0.49033816425120774,
+        "median": 0.5,
+        "ci95": [
+          0.47342995169082125,
+          0.5
+        ],
+        "ci_excludes_baseline": false
+      },
+      "margin": {
+        "point": -0.01652650535106659,
+        "median": 0.0,
+        "ci95": [
+          -0.05024700611829758,
+          0.0006674902440863661
+        ],
+        "ci_excludes_baseline": false
+      },
+      "by_diversity": {
+        "high_div_margin": -0.038010962307453156,
+        "low_div_margin": 5.731216057291988e-10,
+        "high_div_top1": 0.3,
+        "low_div_top1": 0.3333333333333333,
+        "div_median": 1.509903358964948e-05
+      },
+      "gate": {
+        "strict_pass": false,
+        "weakly_positive": false,
+        "label": "FAIL"
+      },
+      "n_test_branches": 207
+    }
+  }
+}

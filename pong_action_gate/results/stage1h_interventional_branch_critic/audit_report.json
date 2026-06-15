@@ -1,0 +1,52 @@
+{
+  "ale_action_meanings": [
+    "NOOP",
+    "FIRE",
+    "RIGHT",
+    "LEFT",
+    "RIGHTFIRE",
+    "LEFTFIRE"
+  ],
+  "semantic_groups_ids": {
+    "NOOP": [
+      0,
+      1
+    ],
+    "UP": [
+      2,
+      4
+    ],
+    "DOWN": [
+      3,
+      5
+    ]
+  },
+  "canonical_action_per_group": {
+    "NOOP": 0,
+    "UP": 2,
+    "DOWN": 3
+  },
+  "canonical_action_names": {
+    "NOOP": "NOOP",
+    "UP": "RIGHT",
+    "DOWN": "LEFT"
+  },
+  "alias_note": "Pong has NO UPFIRE/DOWNFIRE. Aliases are NOOP/FIRE (STAY/NOOP group), RIGHT/RIGHTFIRE (UP group, paddle dy<0), LEFT/LEFTFIRE (DOWN group, dy>0). Primary run uses ONE canonical rep per group; no alias variation.",
+  "reused_components": {
+    "clone_restore": "emulator_branch.snapshot_env / restore_env (ALE cloneSystemState + AtariPreprocessing frame buffers + LSTM hidden + scores)",
+    "decision_state_logic": "Stage-1F/1E: ball_present & ball moving right (dx>0) & ball_x>=120",
+    "continuation": "Stage-1F run_to_hmax convention, here capped at H (one env.step = one agent decision step; frame-skip internal to AtariPreprocessing)",
+    "goal9": "stage1f.goal_at -> [ball_x,ball_y,ball_vx,ball_vy,opp_y,score_diff,mask_ball,mask_opp,mask_vel]; future agent paddle EXCLUDED",
+    "normalization": "Stage-1G principle: train-only mean/std on the 6 continuous comps, masks passed through; here refit on Stage-1H TRAIN base states",
+    "duplicate_targets": "exact integer-goal key equality -> multi-positive BCE targets",
+    "critic": "stage1d_rich_goal.RichStateCritic(STATE_DIM,6,goal_dim=9) (= Stage-1G critic)"
+  },
+  "GROUPS_map": {
+    "0": "STAY",
+    "1": "STAY",
+    "2": "UP",
+    "4": "UP",
+    "3": "DOWN",
+    "5": "DOWN"
+  }
+}

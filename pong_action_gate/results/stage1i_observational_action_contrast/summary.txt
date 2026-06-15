@@ -1,0 +1,18 @@
+Stage-1I observational same-state action contrast. sem base 0.333, pairwise 0.5. TRAIN=observational; emulator branches=EVAL ONLY.
+canonical {'STAY': 0, 'UP': 2, 'DOWN': 3}; H=[12, 16] separate; goal_dim=9 no-self; H not input.
+
+toy passed: True | shortcut toy: obs=1.0 branch=0.333 (high obs + chance branch = shortcut detector works)
+
+== seed 0 ==
+ H12: state_only_act_acc=0.828 state+goal=0.861 (goal_add=+0.032) majority=0.383
+         nce: obsAcc=0.549 | DEC top1=0.334 pair=0.506 marg=+0.010[-0.01,+0.03] hi-lo=-0.07 | ORD top1=0.333 marg=-0.002 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+      action: obsAcc=0.900 | DEC top1=0.376* pair=0.532 marg=+1.470[+1.35,+1.60] hi-lo=+0.54 | ORD top1=0.335 marg=+0.027 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+    combined: obsAcc=0.839 | DEC top1=0.360* pair=0.510 marg=+0.190[+0.15,+0.23] hi-lo=+0.06 | ORD top1=0.336 marg=-0.003 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+    weighted: obsAcc=0.821 | DEC top1=0.360* pair=0.509 marg=+0.179[+0.15,+0.21] hi-lo=+0.05 | ORD top1=0.335 marg=+0.001 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+ H16: state_only_act_acc=0.824 state+goal=0.840 (goal_add=+0.015) majority=0.382
+         nce: obsAcc=0.647 | DEC top1=0.362* pair=0.529 marg=+0.068[+0.05,+0.09] hi-lo=+0.04 | ORD top1=0.333 marg=+0.009 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+      action: obsAcc=0.898 | DEC top1=0.380* pair=0.532 marg=+0.755[+0.68,+0.84] hi-lo=+0.63 | ORD top1=0.335 marg=+0.032 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+    combined: obsAcc=0.803 | DEC top1=0.356* pair=0.524 marg=+0.160[+0.12,+0.20] hi-lo=+0.19 | ORD top1=0.333 marg=+0.012 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+    weighted: obsAcc=0.795 | DEC top1=0.359* pair=0.521 marg=+0.189[+0.15,+0.23] hi-lo=+0.25 | ORD top1=0.333 marg=+0.013 -> FAIL | high_obs+chance_branch => BEHAVIOR-POLICY SHORTCUT
+
+seeds run: [0]

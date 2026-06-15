@@ -1,0 +1,20 @@
+{
+  "margin_sign_toy": {
+    "scores": [
+      [
+        2.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "true": 0,
+    "margin": 2.0,
+    "positive": true
+  },
+  "toy1_perfect_mapping_acc": 1.0,
+  "toy2_action_independent_acc": 0.317,
+  "toy3_permuted_labels_acc": 0.339,
+  "toy4_stateonly_informative_state_acc": 0.333,
+  "toy4_full_model_same_data_acc": 1.0,
+  "passed": true
+}

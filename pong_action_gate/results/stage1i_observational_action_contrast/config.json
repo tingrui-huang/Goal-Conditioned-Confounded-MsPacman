@@ -1,0 +1,17 @@
+{
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "n_episodes": 80,
+  "steps": 3000,
+  "batch": 256,
+  "horizons": [
+    12,
+    16
+  ],
+  "lambda": 1.0,
+  "tau": 1.0,
+  "branch_state_seed": 8000
+}

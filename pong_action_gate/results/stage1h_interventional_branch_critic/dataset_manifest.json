@@ -1,0 +1,40 @@
+{
+  "n_base_total": 850,
+  "n_decision": 700,
+  "n_ordinary": 150,
+  "config": {
+    "state_seed": 8000,
+    "n_dec": 700,
+    "n_ord": 150,
+    "stride": 7,
+    "R": 3,
+    "Hmax": 16,
+    "horizons": [
+      12,
+      16
+    ],
+    "canon": [
+      0,
+      2,
+      3
+    ],
+    "rep_base": 90000,
+    "gen": "v1"
+  },
+  "config_hash": "b24911a44691d11b",
+  "cache_path": "artifacts\\pong_action_gate\\stage1h\\branches_b24911a44691d11b.npz",
+  "collect_stats": {
+    "candidates": 9196,
+    "accepted_decision": 700,
+    "accepted_ordinary": 150,
+    "rejected": 8346,
+    "rejection_reasons": {
+      "no_player": 0,
+      "ball_absent": 0,
+      "not_decision_geom": 8346
+    },
+    "episodes_used": 35,
+    "ball_visibility_rate": 0.8152457590256633,
+    "velocity_availability_rate": 0.80426272292301
+  }
+}

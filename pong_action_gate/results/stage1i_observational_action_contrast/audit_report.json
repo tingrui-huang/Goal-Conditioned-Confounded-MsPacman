@@ -1,0 +1,84 @@
+{
+  "ale_action_meanings": [
+    "NOOP",
+    "FIRE",
+    "RIGHT",
+    "LEFT",
+    "RIGHTFIRE",
+    "LEFTFIRE"
+  ],
+  "semantic_groups_ids": {
+    "STAY": [
+      0,
+      1
+    ],
+    "UP": [
+      2,
+      4
+    ],
+    "DOWN": [
+      3,
+      5
+    ]
+  },
+  "canonical_action_per_group": {
+    "STAY": 0,
+    "UP": 2,
+    "DOWN": 3
+  },
+  "alias_note": "STAY=NOOP/FIRE, UP=RIGHT/RIGHTFIRE, DOWN=LEFT/LEFTFIRE; Pong has NO UPFIRE/DOWNFIRE.",
+  "exact_action_counts": [
+    21429,
+    27227,
+    24681,
+    26098,
+    24566,
+    25889
+  ],
+  "aliases_present": {
+    "FIRE": 27227,
+    "RIGHTFIRE": 24566,
+    "LEFTFIRE": 25889
+  },
+  "semantic_counts": {
+    "all": [
+      48656,
+      49247,
+      51987
+    ],
+    "decision": [
+      4599,
+      2939,
+      4274
+    ],
+    "ordinary": [
+      44057,
+      46308,
+      47713
+    ]
+  },
+  "semantic_proportions": {
+    "all": [
+      0.3246,
+      0.3286,
+      0.3468
+    ],
+    "decision": [
+      0.3893,
+      0.2488,
+      0.3618
+    ],
+    "ordinary": [
+      0.3191,
+      0.3354,
+      0.3456
+    ]
+  },
+  "decision_fraction": 0.07880445660150777,
+  "policy_support_note": "T=2.0 behavior policy gives non-degenerate support to all 3 groups in decision states (min group prop reported above) -> heuristic same-state negatives are available; majority-group prop sets the imitation floor.",
+  "decision_selector": "stage1b: active_rally & toward_agent(ball dx>0) & near_paddle(ball_x>=120)",
+  "goal9": "stage1f/1h no-self [ball_x,ball_y,ball_vx,ball_vy,opp_y,score_diff,mask_ball,mask_opp,mask_vel]",
+  "normalization": "6-dim mean/std on observational TRAIN episodes only; reused for val+emulator",
+  "episode_split": "3-way episode-level (disjoint); cloned eval states from independent rollout seed 8000",
+  "emulator_eval": "Stage-1H branch cache (clone/restore, canonical 0/2/3); col k -> group k (aligned)"
+}

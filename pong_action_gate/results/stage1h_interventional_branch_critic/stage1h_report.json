@@ -1,0 +1,1069 @@
+{
+  "milestone": "Stage-1H-interventional-branch-critic",
+  "audit": {
+    "ale_action_meanings": [
+      "NOOP",
+      "FIRE",
+      "RIGHT",
+      "LEFT",
+      "RIGHTFIRE",
+      "LEFTFIRE"
+    ],
+    "semantic_groups_ids": {
+      "NOOP": [
+        0,
+        1
+      ],
+      "UP": [
+        2,
+        4
+      ],
+      "DOWN": [
+        3,
+        5
+      ]
+    },
+    "canonical_action_per_group": {
+      "NOOP": 0,
+      "UP": 2,
+      "DOWN": 3
+    },
+    "canonical_action_names": {
+      "NOOP": "NOOP",
+      "UP": "RIGHT",
+      "DOWN": "LEFT"
+    },
+    "alias_note": "Pong has NO UPFIRE/DOWNFIRE. Aliases are NOOP/FIRE (STAY/NOOP group), RIGHT/RIGHTFIRE (UP group, paddle dy<0), LEFT/LEFTFIRE (DOWN group, dy>0). Primary run uses ONE canonical rep per group; no alias variation.",
+    "reused_components": {
+      "clone_restore": "emulator_branch.snapshot_env / restore_env (ALE cloneSystemState + AtariPreprocessing frame buffers + LSTM hidden + scores)",
+      "decision_state_logic": "Stage-1F/1E: ball_present & ball moving right (dx>0) & ball_x>=120",
+      "continuation": "Stage-1F run_to_hmax convention, here capped at H (one env.step = one agent decision step; frame-skip internal to AtariPreprocessing)",
+      "goal9": "stage1f.goal_at -> [ball_x,ball_y,ball_vx,ball_vy,opp_y,score_diff,mask_ball,mask_opp,mask_vel]; future agent paddle EXCLUDED",
+      "normalization": "Stage-1G principle: train-only mean/std on the 6 continuous comps, masks passed through; here refit on Stage-1H TRAIN base states",
+      "duplicate_targets": "exact integer-goal key equality -> multi-positive BCE targets",
+      "critic": "stage1d_rich_goal.RichStateCritic(STATE_DIM,6,goal_dim=9) (= Stage-1G critic)"
+    },
+    "GROUPS_map": {
+      "0": "STAY",
+      "1": "STAY",
+      "2": "UP",
+      "4": "UP",
+      "3": "DOWN",
+      "5": "DOWN"
+    }
+  },
+  "toy_tests": {
+    "margin_sign_toy": {
+      "scores": [
+        [
+          2.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "true": 0,
+      "margin": 2.0,
+      "positive": true
+    },
+    "toy1_perfect_mapping_acc": 1.0,
+    "toy2_action_independent_acc": 0.317,
+    "toy3_permuted_labels_acc": 0.339,
+    "toy4_stateonly_informative_state_acc": 0.333,
+    "toy4_full_model_same_data_acc": 1.0,
+    "passed": true
+  },
+  "dataset_manifest": {
+    "n_base_total": 850,
+    "n_decision": 700,
+    "n_ordinary": 150,
+    "config": {
+      "state_seed": 8000,
+      "n_dec": 700,
+      "n_ord": 150,
+      "stride": 7,
+      "R": 3,
+      "Hmax": 16,
+      "horizons": [
+        12,
+        16
+      ],
+      "canon": [
+        0,
+        2,
+        3
+      ],
+      "rep_base": 90000,
+      "gen": "v1"
+    },
+    "config_hash": "b24911a44691d11b",
+    "cache_path": "artifacts\\pong_action_gate\\stage1h\\branches_b24911a44691d11b.npz",
+    "collect_stats": {
+      "candidates": 9196,
+      "accepted_decision": 700,
+      "accepted_ordinary": 150,
+      "rejected": 8346,
+      "rejection_reasons": {
+        "no_player": 0,
+        "ball_absent": 0,
+        "not_decision_geom": 8346
+      },
+      "episodes_used": 35,
+      "ball_visibility_rate": 0.8152457590256633,
+      "velocity_availability_rate": 0.80426272292301
+    }
+  },
+  "goal_dim": 9,
+  "future_self_paddle_in_goal": false,
+  "horizon_input_to_model": false,
+  "horizons_separate": [
+    12,
+    16
+  ],
+  "canonical_actions": {
+    "NOOP": 0,
+    "UP": 2,
+    "DOWN": 3
+  },
+  "temperature": 1.0,
+  "R": 3,
+  "random_baselines": {
+    "semantic": 0.3333333333333333,
+    "pairwise": 0.5
+  },
+  "seeds_run": [
+    0,
+    1,
+    2
+  ],
+  "seed0_within_state_best_gate": "PASS",
+  "per_seed": {
+    "0": {
+      "seed": 0,
+      "split_sizes": {
+        "train": 490,
+        "val": 105,
+        "test": 105
+      },
+      "dataset_sanity": {
+        "same_state_branch_equality_ok": true,
+        "split_leakage": {
+          "train_val": 0,
+          "train_test": 0,
+          "val_test": 0
+        },
+        "action_effect": {
+          "12": {
+            "median_cross_action_distance": 114.00877380371094,
+            "frac_nonzero_distance": 0.7742857142857142,
+            "frac_diversity_gt1": 0.71,
+            "n_decision_states": 700
+          },
+          "16": {
+            "median_cross_action_distance": 99.04544067382812,
+            "frac_nonzero_distance": 0.7771428571428571,
+            "frac_diversity_gt1": 0.6871428571428572,
+            "n_decision_states": 700
+          }
+        },
+        "reproducibility": {
+          "max_goal_discrepancy": 0.0,
+          "exact_match_rate": 1.0,
+          "n_compared": 9
+        }
+      },
+      "by_horizon": {
+        "12": {
+          "normalization": {
+            "mean": [
+              69.24677276611328,
+              145.62387084960938,
+              -6.9754838943481445,
+              -3.9825806617736816,
+              127.59762573242188,
+              8.10906982421875
+            ],
+            "std": [
+              21.315420150756836,
+              39.33708953857422,
+              3.47275710105896,
+              5.439967155456543,
+              46.36848449707031,
+              5.846729755401611
+            ]
+          },
+          "near_zero_var_dims": [],
+          "n_train_branches": 4410,
+          "n_test_branches": 945,
+          "tiny_overfit": {
+            "train_top1": 0.7847222222222222,
+            "train_margin": 4.2268877029418945,
+            "init_vs_final_val": [
+              1.0972740650177002,
+              0.4061271697282791
+            ],
+            "n_base": 16
+          },
+          "nce": {
+            "selected_step": 3000,
+            "sha16": "a6baf3a141c528ac",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.4973544973544973,
+                "median": 0.3333333333333333,
+                "ci95": [
+                  0.45396825396825397,
+                  0.5417989417989417
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.6513227513227513,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.6153439153439154,
+                  0.6873015873015872
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 0.41752704977989197,
+                "median": 0.4085189700126648,
+                "ci95": [
+                  0.32097214460372925,
+                  0.5176347330212593
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 0.5166637897491455,
+                "low_div_margin": 0.3202607035636902,
+                "high_div_top1": 0.5512820512820512,
+                "low_div_top1": 0.4444444444444444,
+                "div_median": 2.0389275550842285
+              },
+              "env_diversity_vs_margin_corr": -0.018188661066192737,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": false,
+              "weakly_positive": true,
+              "label": "WEAK"
+            }
+          },
+          "within_state": {
+            "selected_step": 2400,
+            "sha16": "f6f6ffb33f47245a",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.6222222222222222,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.56505291005291,
+                  0.6804497354497355
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.7412698412698414,
+                "median": 0.8333333333333334,
+                "ci95": [
+                  0.6999867724867723,
+                  0.7830820105820105
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 1.8920180797576904,
+                "median": 1.9662047624588013,
+                "ci95": [
+                  1.5403255820274353,
+                  2.23689129948616
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 2.902310848236084,
+                "low_div_margin": 0.9007874131202698,
+                "high_div_top1": 0.7799145299145298,
+                "low_div_top1": 0.46750524109014685,
+                "div_median": 2.0389275550842285
+              },
+              "env_diversity_vs_margin_corr": 0.3594811480251949,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "state_only_baseline": {
+            "test_top1": 0.3333333333333333,
+            "test_margin": 0.0
+          }
+        },
+        "16": {
+          "normalization": {
+            "mean": [
+              46.55202865600586,
+              128.1168212890625,
+              -5.115256309509277,
+              -5.244170665740967,
+              110.37239074707031,
+              8.131972312927246
+            ],
+            "std": [
+              26.062273025512695,
+              37.220611572265625,
+              5.330206394195557,
+              4.848402500152588,
+              47.241573333740234,
+              5.851045608520508
+            ]
+          },
+          "near_zero_var_dims": [],
+          "n_train_branches": 4410,
+          "n_test_branches": 945,
+          "tiny_overfit": {
+            "train_top1": 0.7777777777777778,
+            "train_margin": 4.068882942199707,
+            "init_vs_final_val": [
+              1.093342661857605,
+              0.46738748252391815
+            ],
+            "n_base": 16
+          },
+          "nce": {
+            "selected_step": 3000,
+            "sha16": "bb8967c0eccaf94a",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.4857142857142857,
+                "median": 0.4444444444444444,
+                "ci95": [
+                  0.4380952380952381,
+                  0.5333333333333333
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.6417989417989418,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.6,
+                  0.6825396825396824
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 0.4235303997993469,
+                "median": 0.4906753897666931,
+                "ci95": [
+                  0.31167178601026535,
+                  0.5327727600932121
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 0.548306941986084,
+                "low_div_margin": 0.30110812187194824,
+                "high_div_top1": 0.5128205128205127,
+                "low_div_top1": 0.45911949685534587,
+                "div_median": 2.0640127658843994
+              },
+              "env_diversity_vs_margin_corr": 0.15614069911740466,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": false,
+              "weakly_positive": true,
+              "label": "WEAK"
+            }
+          },
+          "within_state": {
+            "selected_step": 3000,
+            "sha16": "4e6799feab8f3ec6",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.6052910052910052,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.5513227513227513,
+                  0.6592592592592592
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.7322751322751322,
+                "median": 0.8333333333333334,
+                "ci95": [
+                  0.692579365079365,
+                  0.7714417989417989
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 2.119209051132202,
+                "median": 1.731222152709961,
+                "ci95": [
+                  1.7072374492883682,
+                  2.531725662946701
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 3.358708620071411,
+                "low_div_margin": 0.903096616268158,
+                "high_div_top1": 0.7329059829059829,
+                "low_div_top1": 0.480083857442348,
+                "div_median": 2.0640127658843994
+              },
+              "env_diversity_vs_margin_corr": 0.3902270538196231,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "state_only_baseline": {
+            "test_top1": 0.3333333333333333,
+            "test_margin": 0.0
+          }
+        }
+      }
+    },
+    "1": {
+      "seed": 1,
+      "split_sizes": {
+        "train": 490,
+        "val": 105,
+        "test": 105
+      },
+      "dataset_sanity": {
+        "same_state_branch_equality_ok": true,
+        "split_leakage": {
+          "train_val": 0,
+          "train_test": 0,
+          "val_test": 0
+        },
+        "action_effect": {
+          "12": {
+            "median_cross_action_distance": 114.00877380371094,
+            "frac_nonzero_distance": 0.7742857142857142,
+            "frac_diversity_gt1": 0.71,
+            "n_decision_states": 700
+          },
+          "16": {
+            "median_cross_action_distance": 99.04544067382812,
+            "frac_nonzero_distance": 0.7771428571428571,
+            "frac_diversity_gt1": 0.6871428571428572,
+            "n_decision_states": 700
+          }
+        },
+        "reproducibility": {
+          "max_goal_discrepancy": 0.0,
+          "exact_match_rate": 1.0,
+          "n_compared": 9
+        }
+      },
+      "by_horizon": {
+        "12": {
+          "normalization": {
+            "mean": [
+              68.82019805908203,
+              145.18142700195312,
+              -7.041693687438965,
+              -3.9400651454925537,
+              125.76300811767578,
+              8.257369995117188
+            ],
+            "std": [
+              21.304391860961914,
+              40.009883880615234,
+              3.3161661624908447,
+              5.391360282897949,
+              47.6307373046875,
+              5.760859489440918
+            ]
+          },
+          "near_zero_var_dims": [],
+          "n_train_branches": 4410,
+          "n_test_branches": 945,
+          "tiny_overfit": {
+            "train_top1": 0.7222222222222222,
+            "train_margin": 4.19101619720459,
+            "init_vs_final_val": [
+              1.08916175365448,
+              0.542416125535965
+            ],
+            "n_base": 16
+          },
+          "nce": {
+            "selected_step": 2800,
+            "sha16": "914017beacf02b0f",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.4952380952380953,
+                "median": 0.4444444444444444,
+                "ci95": [
+                  0.45608465608465615,
+                  0.5354497354497354
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.6544973544973546,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.6227513227513228,
+                  0.6857142857142856
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 0.340695858001709,
+                "median": 0.30096203088760376,
+                "ci95": [
+                  0.27590931951999664,
+                  0.4064001441001892
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 0.3899202048778534,
+                "low_div_margin": 0.2924002408981323,
+                "high_div_top1": 0.5470085470085471,
+                "low_div_top1": 0.44444444444444436,
+                "div_median": 2.6494035720825195
+              },
+              "env_diversity_vs_margin_corr": -0.06896105006831021,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": false,
+              "weakly_positive": true,
+              "label": "WEAK"
+            }
+          },
+          "within_state": {
+            "selected_step": 2400,
+            "sha16": "eaaa0d2224e74591",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.6211640211640211,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.564021164021164,
+                  0.6762169312169312
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.7481481481481481,
+                "median": 0.8333333333333334,
+                "ci95": [
+                  0.7063492063492063,
+                  0.7873015873015872
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 2.0760176181793213,
+                "median": 2.1743710041046143,
+                "ci95": [
+                  1.7366030544042588,
+                  2.40607088804245
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 2.548434257507324,
+                "low_div_margin": 1.6125136613845825,
+                "high_div_top1": 0.7435897435897435,
+                "low_div_top1": 0.5010482180293501,
+                "div_median": 2.6494035720825195
+              },
+              "env_diversity_vs_margin_corr": -0.00970671529678487,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "state_only_baseline": {
+            "test_top1": 0.3333333333333333,
+            "test_margin": 0.0
+          }
+        },
+        "16": {
+          "normalization": {
+            "mean": [
+              46.1417236328125,
+              127.92152404785156,
+              -5.013781547546387,
+              -5.1566386222839355,
+              109.16535186767578,
+              8.279138565063477
+            ],
+            "std": [
+              25.216201782226562,
+              37.89466857910156,
+              5.5272111892700195,
+              4.834783554077148,
+              48.4459114074707,
+              5.763820648193359
+            ]
+          },
+          "near_zero_var_dims": [],
+          "n_train_branches": 4410,
+          "n_test_branches": 945,
+          "tiny_overfit": {
+            "train_top1": 0.7430555555555556,
+            "train_margin": 4.163806915283203,
+            "init_vs_final_val": [
+              1.0843386948108673,
+              0.5351956486701965
+            ],
+            "n_base": 16
+          },
+          "nce": {
+            "selected_step": 3000,
+            "sha16": "f4940adf8df7ab1b",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.5015873015873016,
+                "median": 0.4444444444444444,
+                "ci95": [
+                  0.45396825396825397,
+                  0.548148148148148
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.6386243386243386,
+                "median": 0.6111111111111112,
+                "ci95": [
+                  0.6021031746031745,
+                  0.675674603174603
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 0.4062933027744293,
+                "median": 0.33263587951660156,
+                "ci95": [
+                  0.31141548603773117,
+                  0.5044966369867325
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 0.5301674604415894,
+                "low_div_margin": 0.2847563624382019,
+                "high_div_top1": 0.5598290598290598,
+                "low_div_top1": 0.4444444444444445,
+                "div_median": 2.609677791595459
+              },
+              "env_diversity_vs_margin_corr": -0.058468776404316476,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "within_state": {
+            "selected_step": 2400,
+            "sha16": "713781286a84dca6",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.6328042328042328,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.5798941798941799,
+                  0.6836243386243386
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.7481481481481481,
+                "median": 0.8333333333333334,
+                "ci95": [
+                  0.7074074074074074,
+                  0.7878439153439153
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 1.95710027217865,
+                "median": 1.7371915578842163,
+                "ci95": [
+                  1.6364589214324952,
+                  2.2949084639549255
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 2.816561460494995,
+                "low_div_margin": 1.1138556003570557,
+                "high_div_top1": 0.7435897435897435,
+                "low_div_top1": 0.5241090146750523,
+                "div_median": 2.609677791595459
+              },
+              "env_diversity_vs_margin_corr": 0.17796368853338065,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "state_only_baseline": {
+            "test_top1": 0.3333333333333333,
+            "test_margin": 0.0
+          }
+        }
+      }
+    },
+    "2": {
+      "seed": 2,
+      "split_sizes": {
+        "train": 490,
+        "val": 105,
+        "test": 105
+      },
+      "dataset_sanity": {
+        "same_state_branch_equality_ok": true,
+        "split_leakage": {
+          "train_val": 0,
+          "train_test": 0,
+          "val_test": 0
+        },
+        "action_effect": {
+          "12": {
+            "median_cross_action_distance": 114.00877380371094,
+            "frac_nonzero_distance": 0.7742857142857142,
+            "frac_diversity_gt1": 0.71,
+            "n_decision_states": 700
+          },
+          "16": {
+            "median_cross_action_distance": 99.04544067382812,
+            "frac_nonzero_distance": 0.7771428571428571,
+            "frac_diversity_gt1": 0.6871428571428572,
+            "n_decision_states": 700
+          }
+        },
+        "reproducibility": {
+          "max_goal_discrepancy": 0.0,
+          "exact_match_rate": 1.0,
+          "n_compared": 9
+        }
+      },
+      "by_horizon": {
+        "12": {
+          "normalization": {
+            "mean": [
+              70.39863586425781,
+              146.59681701660156,
+              -6.9218292236328125,
+              -3.611741781234741,
+              127.28829956054688,
+              8.34399127960205
+            ],
+            "std": [
+              21.315181732177734,
+              39.05747985839844,
+              3.5248141288757324,
+              5.614386081695557,
+              46.996917724609375,
+              5.933516025543213
+            ]
+          },
+          "near_zero_var_dims": [],
+          "n_train_branches": 4410,
+          "n_test_branches": 945,
+          "tiny_overfit": {
+            "train_top1": 0.7916666666666666,
+            "train_margin": 4.006741046905518,
+            "init_vs_final_val": [
+              1.102961391210556,
+              0.4719424173235893
+            ],
+            "n_base": 16
+          },
+          "nce": {
+            "selected_step": 3000,
+            "sha16": "88094c08b46d958c",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.49629629629629624,
+                "median": 0.3333333333333333,
+                "ci95": [
+                  0.4497354497354497,
+                  0.544973544973545
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.6539682539682539,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.6153306878306879,
+                  0.69260582010582
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 0.5499970316886902,
+                "median": 0.4919039309024811,
+                "ci95": [
+                  0.4303481727838516,
+                  0.6594292432069777
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 0.6972472667694092,
+                "low_div_margin": 0.4055250883102417,
+                "high_div_top1": 0.5341880341880342,
+                "low_div_top1": 0.4591194968553458,
+                "div_median": 3.6744492053985596
+              },
+              "env_diversity_vs_margin_corr": -0.03564010070542674,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": false,
+              "weakly_positive": true,
+              "label": "WEAK"
+            }
+          },
+          "within_state": {
+            "selected_step": 2600,
+            "sha16": "7dbd639a4477087a",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.6074074074074074,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.5534391534391535,
+                  0.6603439153439153
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.729100529100529,
+                "median": 0.8333333333333334,
+                "ci95": [
+                  0.6878174603174603,
+                  0.7735449735449734
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 2.057804584503174,
+                "median": 2.3340818881988525,
+                "ci95": [
+                  1.6713430106639862,
+                  2.4110085368156433
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 2.7837564945220947,
+                "low_div_margin": 1.3455497026443481,
+                "high_div_top1": 0.735042735042735,
+                "low_div_top1": 0.48218029350104813,
+                "div_median": 3.6744492053985596
+              },
+              "env_diversity_vs_margin_corr": -0.07094103503896022,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "state_only_baseline": {
+            "test_top1": 0.3333333333333333,
+            "test_margin": 0.0
+          }
+        },
+        "16": {
+          "normalization": {
+            "mean": [
+              47.728912353515625,
+              129.6547393798828,
+              -4.958693981170654,
+              -5.016322612762451,
+              111.13844299316406,
+              8.363039016723633
+            ],
+            "std": [
+              26.042631149291992,
+              36.673248291015625,
+              5.493284702301025,
+              5.033538341522217,
+              47.6151008605957,
+              5.93883752822876
+            ]
+          },
+          "near_zero_var_dims": [],
+          "n_train_branches": 4410,
+          "n_test_branches": 945,
+          "tiny_overfit": {
+            "train_top1": 0.7569444444444444,
+            "train_margin": 3.6911797523498535,
+            "init_vs_final_val": [
+              1.1006865203380585,
+              0.5095368921756744
+            ],
+            "n_base": 16
+          },
+          "nce": {
+            "selected_step": 3000,
+            "sha16": "220589f302cd96f9",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.48783068783068784,
+                "median": 0.3333333333333333,
+                "ci95": [
+                  0.4497354497354497,
+                  0.528042328042328
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.6365079365079366,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.6031746031746033,
+                  0.6719708994708994
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 0.35004737973213196,
+                "median": 0.303073525428772,
+                "ci95": [
+                  0.2608670718967915,
+                  0.4292164511978626
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 0.45545461773872375,
+                "low_div_margin": 0.24662895500659943,
+                "high_div_top1": 0.5491452991452992,
+                "low_div_top1": 0.4276729559748427,
+                "div_median": 3.6763532161712646
+              },
+              "env_diversity_vs_margin_corr": 0.026817032363039346,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": false,
+              "weakly_positive": true,
+              "label": "WEAK"
+            }
+          },
+          "within_state": {
+            "selected_step": 2800,
+            "sha16": "80d6675983e35761",
+            "test": {
+              "n_base_states": 105,
+              "n_branches": 945,
+              "semantic_top1": {
+                "point": 0.5798941798941799,
+                "median": 0.6666666666666666,
+                "ci95": [
+                  0.5312169312169313,
+                  0.6264550264550265
+                ],
+                "ci_excludes_baseline": true
+              },
+              "pairwise": {
+                "point": 0.7158730158730158,
+                "median": 0.7777777777777778,
+                "ci95": [
+                  0.6788359788359789,
+                  0.7566137566137566
+                ],
+                "ci_excludes_baseline": true
+              },
+              "margin": {
+                "point": 2.079716920852661,
+                "median": 1.5622098445892334,
+                "ci95": [
+                  1.6782569289207458,
+                  2.470367401838302
+                ],
+                "ci_excludes_baseline": true
+              },
+              "exact_top1": "N/A (canonical-only; no alias variation in primary run)",
+              "by_diversity": {
+                "high_div_margin": 3.17899489402771,
+                "low_div_margin": 1.0011800527572632,
+                "high_div_top1": 0.7072649572649572,
+                "low_div_top1": 0.45492662473794543,
+                "div_median": 3.6763532161712646
+              },
+              "env_diversity_vs_margin_corr": 0.22557663015073576,
+              "stronger_in_high_diversity": true
+            },
+            "gate": {
+              "strict_pass": true,
+              "weakly_positive": false,
+              "label": "PASS"
+            }
+          },
+          "state_only_baseline": {
+            "test_top1": 0.3333333333333333,
+            "test_margin": 0.0
+          }
+        }
+      }
+    }
+  },
+  "interpretation_note": "Positive control. PASS => architecture/goal CAPABLE; Stage-1G failure is an objective/data (observational) problem. FAIL under within-state supervision => representation/goal inadequate. Distinguishes A/B/C/D."
+}

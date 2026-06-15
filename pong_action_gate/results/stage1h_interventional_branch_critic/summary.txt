@@ -1,0 +1,36 @@
+Stage-1H interventional branch critic (positive control). sem base 0.333, pairwise 0.5.
+canonical actions {'NOOP': 0, 'UP': 2, 'DOWN': 3}; H=[12, 16] (separate); goal_dim=9 no-self; H not an input.
+
+toy tests passed: True  (t1=1.0 t2=0.317 t3=0.339 t4_stateonly=0.333 t4_full=1.0)
+
+== seed 0  split {'train': 490, 'val': 105, 'test': 105} ==
+  H12          nce: top1=0.497* pair=0.651 marg(med)=+0.4085 margCIlo=+0.3210 hi-lo_marg=+0.1964 -> WEAK
+  H12 within_state: top1=0.622* pair=0.741 marg(med)=+1.9662 margCIlo=+1.5403 hi-lo_marg=+2.0015 -> PASS
+  H12   state_only: top1=0.333 margin=+0.0000 (expect ~chance)
+  H12 tiny_overfit: top1=0.785 margin=+4.2269
+  H16          nce: top1=0.486* pair=0.642 marg(med)=+0.4907 margCIlo=+0.3117 hi-lo_marg=+0.2472 -> WEAK
+  H16 within_state: top1=0.605* pair=0.732 marg(med)=+1.7312 margCIlo=+1.7072 hi-lo_marg=+2.4556 -> PASS
+  H16   state_only: top1=0.333 margin=+0.0000 (expect ~chance)
+  H16 tiny_overfit: top1=0.778 margin=+4.0689
+
+== seed 1  split {'train': 490, 'val': 105, 'test': 105} ==
+  H12          nce: top1=0.495* pair=0.654 marg(med)=+0.3010 margCIlo=+0.2759 hi-lo_marg=+0.0975 -> WEAK
+  H12 within_state: top1=0.621* pair=0.748 marg(med)=+2.1744 margCIlo=+1.7366 hi-lo_marg=+0.9359 -> PASS
+  H12   state_only: top1=0.333 margin=+0.0000 (expect ~chance)
+  H12 tiny_overfit: top1=0.722 margin=+4.1910
+  H16          nce: top1=0.502* pair=0.639 marg(med)=+0.3326 margCIlo=+0.3114 hi-lo_marg=+0.2454 -> PASS
+  H16 within_state: top1=0.633* pair=0.748 marg(med)=+1.7372 margCIlo=+1.6365 hi-lo_marg=+1.7027 -> PASS
+  H16   state_only: top1=0.333 margin=+0.0000 (expect ~chance)
+  H16 tiny_overfit: top1=0.743 margin=+4.1638
+
+== seed 2  split {'train': 490, 'val': 105, 'test': 105} ==
+  H12          nce: top1=0.496* pair=0.654 marg(med)=+0.4919 margCIlo=+0.4303 hi-lo_marg=+0.2917 -> WEAK
+  H12 within_state: top1=0.607* pair=0.729 marg(med)=+2.3341 margCIlo=+1.6713 hi-lo_marg=+1.4382 -> PASS
+  H12   state_only: top1=0.333 margin=+0.0000 (expect ~chance)
+  H12 tiny_overfit: top1=0.792 margin=+4.0067
+  H16          nce: top1=0.488* pair=0.637 marg(med)=+0.3031 margCIlo=+0.2609 hi-lo_marg=+0.2088 -> WEAK
+  H16 within_state: top1=0.580* pair=0.716 marg(med)=+1.5622 margCIlo=+1.6783 hi-lo_marg=+2.1778 -> PASS
+  H16   state_only: top1=0.333 margin=+0.0000 (expect ~chance)
+  H16 tiny_overfit: top1=0.757 margin=+3.6912
+
+seed0 within-state best gate: PASS   seeds run: [0, 1, 2]

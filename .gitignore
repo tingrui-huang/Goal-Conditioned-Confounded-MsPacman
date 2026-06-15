@@ -249,3 +249,7 @@ memory/
 
 # Generated artifacts for the Pong action-gate phase (data/ckpts/videos/plots live outside source)
 artifacts/
+
+# Stage results: keep JSON/txt reports in git, but not the large binaries (reproducible from code)
+pong_action_gate/results/**/*.pt
+pong_action_gate/results/**/*.npz

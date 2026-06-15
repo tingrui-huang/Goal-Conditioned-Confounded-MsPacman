@@ -1,0 +1,21 @@
+{
+  "margin_sign_positive": true,
+  "toy1_action_conditioned": {
+    "obs_top1": 1.0,
+    "branch_align": 1.0
+  },
+  "toy3_behavior_shortcut": {
+    "obs_top1": 1.0,
+    "majority_acc": 0.342,
+    "branch_align": 0.333
+  },
+  "toy4_state_fixed_action_future": {
+    "obs_top1": 1.0,
+    "branch_align": 1.0
+  },
+  "toy5_permuted_labels": {
+    "obs_top1": 1.0,
+    "branch_align": 0.308
+  },
+  "passed": true
+}
