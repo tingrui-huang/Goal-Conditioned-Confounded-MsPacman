@@ -106,6 +106,26 @@ def build_notebook(path):
               "Q.write_report(rep, os.path.join(OUT,'hostile_qualification.json'), os.path.join(OUT,'hostile_qualification.md'))\n"
               "print('FINAL OUTCOME:', rep['final_outcome'], '(', rep['failure_kind'], ')')\n"
               "rep['components']"),
+        _md("## Pack + download all Stage-H0 results\n"
+            "Zips everything under `OUT` (qualification report, per-probe raw "
+            "predictions/losses, support, and the copied audit JSONs) and triggers a "
+            "browser download in Colab."),
+        _code("# 8. pack + download all results\n"
+              "import shutil, zipfile, os\n"
+              "stamp = os.environ.get('H0_STAMP', 'results')\n"
+              "pack_path = shutil.make_archive(f'/content/seaquest_hostile_h0_{stamp}', 'zip', OUT)\n"
+              "size_mb = round(os.path.getsize(pack_path) / 1e6, 2)\n"
+              "with zipfile.ZipFile(pack_path) as z:\n"
+              "    names = z.namelist()\n"
+              "print(f'packed {pack_path}  ({size_mb} MB, {len(names)} files)')\n"
+              "for n in sorted(names):\n"
+              "    if n.endswith(('.json', '.md', '.png', '.csv')):\n"
+              "        print('  ', n)\n"
+              "try:\n"
+              "    from google.colab import files\n"
+              "    files.download(pack_path)\n"
+              "except Exception as e:\n"
+              "    print('(not in Colab / download unavailable):', e, '-> grab', pack_path)"),
         _md("## Smoke (engineering only — NOT a scientific result)\n"
             "Runs the qualification wiring on MOCK metrics; writes to a `smoke/` dir, "
             "never the real report."),
