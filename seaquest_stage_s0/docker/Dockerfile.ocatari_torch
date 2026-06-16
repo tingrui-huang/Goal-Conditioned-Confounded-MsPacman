@@ -1,0 +1,10 @@
+# Stage-G0 closed-loop evaluation image: the validated OCAtari/ALE + JAX teacher env
+# (seaquest-s0:ocatari) plus PyTorch (for the contrastive critic) and tensorboard
+# (the CleanRL teacher source imports torch.utils.tensorboard at load time).
+#
+#   docker build -f seaquest_stage_s0/docker/Dockerfile.ocatari_torch -t seaquest-s0:ocatari-torch .
+#   docker run --rm -v "$PWD":/work -w /work seaquest-s0:ocatari-torch \
+#       python -m seaquest_ccrl.scripts.g0_closed_loop_eval --per-episode 20
+FROM seaquest-s0:ocatari
+RUN pip install --no-cache-dir torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir tensorboard
