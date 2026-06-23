@@ -1,13 +1,16 @@
-"""Stage-G0 steps 12-19 — closed-loop goal-reaching evaluation (full-view critic vs baselines).
+"""Stage-G0 steps 12-19 — closed-loop goal-reaching evaluation of a four-frame critic vs baselines.
+
+Works for EITHER critic via --critic-ckpt: masking is derived from the checkpoint's `oracle` flag —
+oracle=True (FULL-VIEW) leaves frames unmasked; oracle=False (MASKED/naive) zeroes the oxygen-bar
+rect on the critic's input (mask-then-resize-then-stack, exactly as in training). Anchors, center
+goals, CRN and all baselines are identical across critics, so masked and full-view runs are directly
+comparable on the same anchor subset (point both at the same --anchor-dir, separate --out-dir).
 
 Deterministic, episode-balanced, difficulty/direction-stratified anchor subset (default 20/episode
--> 480 per horizon). Common-random-number: every policy restores the IDENTICAL cloned state per
-anchor (hash-verified). Policies: full-view critic (argmax over 18 actions), B0 reference-action
-replay, B1 random, B2 NOOP, B3a greedy teacher (matches the reference-goal generator), B3b native
-stochastic Gumbel teacher (secondary). B4 (masked critic) = N/A (no authoritative checkpoint local).
-
-Runs in seaquest-s0:ocatari-torch. Recomputes anchors deterministically from episode_actions.npz
-(reset(seed) -> replay actions[0:t] -> snapshot). Does NOT retrain or modify the critic.
+-> 480 per horizon). CRN: every policy reaches the IDENTICAL s_t by reset(seed)+replay (this ale_py's
+cloneState aliases the live ALE, so snapshots are unusable). Policies: critic (argmax/18, det.
+tie-break), B0 reference replay, B1 random, B2 NOOP, B3a greedy teacher, B3b native Gumbel teacher.
+Runs in seaquest-s0:ocatari-torch. Does NOT retrain or modify the critic.
 """
 import sys, os, json, hashlib, argparse, csv
 from collections import deque, Counter
@@ -19,8 +22,10 @@ from seaquest_stage_s0.teacher_port import SeaquestPort
 from seaquest_stage_s0.teacher_adapter import CleanRLSeaquestTeacher
 
 import torch
+from seaquest_ccrl import config as C
 from seaquest_ccrl.training.train_critic import load_critic
 from seaquest_ccrl.models.sa_encoder import preprocess_frames
+from seaquest_ccrl.data.masking import apply_oxygen_mask
 
 EVAL = "artifacts/seaquest/goal_control/full_view/evaluation"
 HORIZONS = [16, 32, 64]
@@ -81,10 +86,18 @@ def select_subset(manifest, per_ep):
     return chosen
 
 
+def _prep(frame_rgb, fs, mask_oxygen):
+    """Raw 210x160x3 -> (fs,fs,3) uint8, masking the oxygen bar first iff the critic is the
+    masked (naive) one (mask-then-resize-then-stack, exactly as in training)."""
+    f = apply_oxygen_mask(frame_rgb, C.OXY_MASK_RECT) if mask_oxygen else frame_rgb
+    return preprocess_frames(f[None], fs)[0]
+
+
 def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, teacher=None,
-               device="cpu", aid=0, goal=None):
+               device="cpu", aid=0, goal=None, mask_oxygen=False):
     """Reach s_t by reset(seed)+replay (deterministic; avoids ale_py cloneState aliasing),
-    then roll one policy for H steps. Every policy reproduces the identical s_t -> genuine CRN."""
+    then roll one policy for H steps. Every policy reproduces the identical s_t -> genuine CRN.
+    mask_oxygen=True zeroes the oxygen-bar rect on the critic's input frames (naive critic)."""
     port.reset(seed=seed, noop_max=0)
     rgbq = deque(maxlen=4)
     r0 = np.asarray(port.ale.getScreenRGB(), np.uint8)
@@ -98,7 +111,7 @@ def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, t
     buf = deque(maxlen=4)
     if kind == "critic":
         for f in rgbq:
-            buf.append(preprocess_frames(f[None], cfg.frame_size)[0])
+            buf.append(_prep(f, cfg.frame_size, mask_oxygen))
     ref = full_actions[t:t + H]
     rng = np.random.default_rng(10_000 + aid)         # B1 / B3b per-anchor stream
     gnorm = cfg.normalize_goal(goal) if (cfg is not None) else None
@@ -122,7 +135,7 @@ def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, t
             a = int(teacher.sample_action(port.teacher_obs(), noise)[0])
         rec = port.agent_step(a)
         if kind == "critic":
-            buf.append(preprocess_frames(np.asarray(port.ale.getScreenRGB(), np.uint8)[None], cfg.frame_size)[0])
+            buf.append(_prep(np.asarray(port.ale.getScreenRGB(), np.uint8), cfg.frame_size, mask_oxygen))
         lives = port.features().get("lives")
         positions.append(pcenter(port)); acts.append(a)        # CENTER coords (match training)
         if life_step < 0 and start_lives is not None and lives is not None and lives < start_lives:
@@ -169,13 +182,19 @@ def main():
     ap.add_argument("--per-episode", type=int, default=20)
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--out-dir", default=EVAL)
+    ap.add_argument("--anchor-dir", default=EVAL, help="dir holding anchor_manifest.json + episode_actions.npz + clone_restore_parity.json")
+    ap.add_argument("--critic-ckpt", default=CKPT)
     ap.add_argument("--device", default="cpu")
     args = ap.parse_args()
     os.makedirs(f"{args.out_dir}/figures", exist_ok=True)
     os.makedirs(f"{args.out_dir}/trajectory_examples", exist_ok=True)
-    manifest = json.load(open(f"{args.out_dir}/anchor_manifest.json"))
-    ep_npz = np.load(f"{args.out_dir}/episode_actions.npz")
-    critic, cfg, oracle = load_critic(CKPT, args.device); assert oracle is True
+    manifest = json.load(open(f"{args.anchor_dir}/anchor_manifest.json"))
+    ep_npz = np.load(f"{args.anchor_dir}/episode_actions.npz")
+    critic, cfg, oracle = load_critic(args.critic_ckpt, args.device)
+    assert getattr(cfg, "frame_stack", 1) == 4, f"expected frame_stack=4, got {cfg.frame_stack}"
+    mask_oxygen = (oracle is False)            # naive/masked critic -> mask the oxygen bar on its input
+    print(f"[critic] {args.critic_ckpt} oracle={oracle} -> view={'MASKED(naive)' if mask_oxygen else 'FULL_VIEW(oracle)'} "
+          f"frame_stack={cfg.frame_stack} steps={getattr(cfg,'steps','?')}")
     teacher = CleanRLSeaquestTeacher(TEACHER_CKPT, TEACHER_SRC, mod_name="cleanrl_src_A")
 
     per_ep = 3 if args.smoke else args.per_episode
@@ -185,6 +204,8 @@ def main():
         chosen = {H: [a for a in chosen[H] if a["seed"] in seeds][:3] for H in HORIZONS}
     subset = {"per_episode": per_ep, "horizons": HORIZONS, "n_per_horizon": {H: len(chosen[H]) for H in HORIZONS},
               "radius": RADIUS, "policies": ["critic", "B0", "B1", "B2", "B3a", "B3b"], "B4": "N/A",
+              "critic_ckpt": args.critic_ckpt, "critic_oracle": bool(oracle),
+              "critic_view": ("MASKED_naive" if mask_oxygen else "FULL_VIEW_oracle"),
               "strata_counts": {H: dict(Counter((a["difficulty"], a["direction"]) for a in chosen[H]))
                                 and {f"{d}|{u}": sum(1 for a in chosen[H] if a["difficulty"] == d and a["direction"] == u)
                                      for d in ("easy", "medium", "hard") for u in ("up", "down")} for H in HORIZONS},
@@ -243,14 +264,14 @@ def main():
             for (H, a) in hlist:                          # critic: goal-conditioned, per horizon
                 a2, g = cinfo[H]
                 traj = run_policy(seed, acts_full, t, H, "critic", port=work, critic=critic, cfg=cfg,
-                                  device=args.device, aid=a2["anchor_id"], goal=tuple(g))
+                                  device=args.device, aid=a2["anchor_id"], goal=tuple(g), mask_oxygen=mask_oxygen)
                 rows.append(_row(a2, seed, t, H, "critic", traj["crn"], crn_ref, metrics_for(traj, tuple(g), H)))
         print(f"  seed {seed}: {sum(1 for r in rows if r['seed']==seed)} rows")
 
-    _aggregate_and_gate(rows, chosen, args.out_dir, manifest)
+    _aggregate_and_gate(rows, chosen, args.out_dir, manifest, args.anchor_dir)
 
 
-def _aggregate_and_gate(rows, chosen, out, manifest):
+def _aggregate_and_gate(rows, chosen, out, manifest, anchor_dir):
     crn_ok = all(r["crn_ok"] for r in rows)
     def sel(policy, H=None, pred=None):
         return [r for r in rows if r["policy"] == policy and (H is None or r["H"] == H)
@@ -294,7 +315,7 @@ def _aggregate_and_gate(rows, chosen, out, manifest):
     json.dump(paired_cmp, open(f"{out}/paired_comparisons.json", "w"), indent=2)
 
     # competence gate (section 17)
-    parity = json.load(open(f"{out}/clone_restore_parity.json"))
+    parity = json.load(open(f"{anchor_dir}/clone_restore_parity.json"))
     ref_ok = all(parity["per_horizon"][str(H)]["within_goal_radius_rate"] >= 0.98 for H in HORIZONS)
     crit_agg = agg["aggregate"]["critic"]["mean"]
     per_h_ok = all(agg["per_horizon"]["critic"][H]["success_by_H"]["mean"] > G_PER_H for H in HORIZONS)
