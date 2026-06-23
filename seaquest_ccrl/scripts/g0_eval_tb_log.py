@@ -49,6 +49,24 @@ def main():
     txt += "\n".join(f"| {n} | {m['success_rate']:.3f} | {m['mean_final_distance']:.2f} | "
                      f"{m['mean_min_distance']:.2f} | {m['n']} |" for n, m in rows)
     w.add_text("eval/closed_loop_comparison", txt, 0)
+
+    # per-horizon dashboard: critic vs the meaningful expert baseline (B3b stochastic teacher)
+    # and random. step = horizon, so TB plots H16/H32/H64 curves with all policies overlaid.
+    # B3b is the EXPERT ceiling here (B0/B3a are reachability/goal-author baselines, not competence).
+    PER_H = [("full_view_critic", args.full_view_dir, "critic"),
+             ("masked_critic", args.masked_dir, "critic"),
+             ("B3b_teacher", args.full_view_dir, "B3b"),
+             ("random", args.full_view_dir, "B1")]
+    for label, d, pol in PER_H:
+        ap = os.path.join(d, "aggregate_metrics.json")
+        if not os.path.exists(ap):
+            continue
+        ph = json.load(open(ap))["per_horizon"].get(pol)
+        if not ph:
+            continue
+        for H in (16, 32, 64):
+            w.add_scalar(f"eval/success_by_H/{label}", ph[str(H)]["success_by_H"]["mean"], H)
+            w.add_scalar(f"eval/success_at_H/{label}", ph[str(H)]["success_at_H"], H)
     w.flush(); w.close()
     cmp = {"full_view": fv, "masked": mk,
            "note": "eval/* are goal-reaching control metrics; NOT the same as train/diag_acc."}
