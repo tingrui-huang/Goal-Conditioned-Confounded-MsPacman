@@ -62,6 +62,7 @@ def main():
     ap.add_argument("--ckpt-dir", default="seaquest_ccrl/checkpoints/hf_4frame_seed0")
     ap.add_argument("--device", default=None)
     ap.add_argument("--threads", type=int, default=0)
+    ap.add_argument("--tb-logdir", default=None, help="TensorBoard event dir (opt-in)")
     args = ap.parse_args()
     if args.threads > 0:
         torch.set_num_threads(args.threads)
@@ -79,9 +80,36 @@ def main():
           f"lr={cfg.lr} gamma={cfg.gamma} frame_size={cfg.frame_size} FRAME_STACK={cfg.frame_stack} "
           f"repr_dim={cfg.repr_dim} goal_radius={cfg.goal_radius} goal_box=({gx0},{gx1},{gy0},{gy1})")
     hard_assertions(game, cfg, args.ckpt_dir, args.root)
-    path = train(oracle=args.oracle, cfg=cfg, game=game, root=args.root, device=device, verbose=True)
+    path = train(oracle=args.oracle, cfg=cfg, game=game, root=args.root, device=device,
+                 verbose=True, tb_logdir=args.tb_logdir)
     assert_checkpoint(path)
+    _write_provenance(args, cfg, path)
     print(f"[HF 4-frame critic] DONE -> {path}")
+
+
+def _write_provenance(args, cfg, path):
+    """Save the complete run config + provenance next to the checkpoint (and to TB text)."""
+    import os, json, hashlib, subprocess
+    man = os.path.join(args.root, "manifest.json")
+    man_sha = hashlib.sha256(open(man, "rb").read()).hexdigest() if os.path.exists(man) else None
+    try:
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    except Exception:
+        commit = None
+    prov = {"seed": cfg.seed, "steps": cfg.steps, "batch_size": cfg.batch_size, "lr": cfg.lr,
+            "gamma": cfg.gamma, "frame_stack": cfg.frame_stack, "frame_size": cfg.frame_size,
+            "nb_actions": cfg.nb_actions, "repr_dim": cfg.repr_dim, "goal_radius": cfg.goal_radius,
+            "mask_mode": "oracle_full_view" if args.oracle else "naive_masked", "oracle": bool(args.oracle),
+            "root": args.root, "dataset_manifest_sha256": man_sha, "checkpoint_path": path,
+            "git_commit": commit, "tb_logdir": args.tb_logdir}
+    out = os.path.join(args.ckpt_dir, "run_provenance.json")
+    json.dump(prov, open(out, "w"), indent=2)
+    if args.tb_logdir:
+        from torch.utils.tensorboard import SummaryWriter
+        w = SummaryWriter(args.tb_logdir)
+        w.add_text("run_provenance", "```json\n" + json.dumps(prov, indent=2) + "\n```", 0)
+        w.flush(); w.close()
+    print(f"  [provenance] WROTE {out}")
 
 
 if __name__ == "__main__":

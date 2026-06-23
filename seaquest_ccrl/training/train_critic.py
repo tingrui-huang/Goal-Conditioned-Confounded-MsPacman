@@ -22,10 +22,22 @@ from seaquest_ccrl.training.dataset_sampler import HindsightSampler
 from seaquest_ccrl.models.contrastive_critic import ContrastiveCritic
 
 
+@torch.no_grad()
+def _action_shuffle_delta(critic, sampler, cfg, device, n=512):
+    """Lightweight in-training action-use signal: mean f(s,a_true,g) - f(s,a_shuffled,g).
+    Positive => the critic scores the demonstrated action above a random one."""
+    fr, ac, go = sampler.sample(n)
+    sa = critic.sa_encoder(fr, ac); g = critic.g_encoder(go)
+    s_true = (sa * g).sum(1)
+    perm = torch.randperm(len(ac), device=device)
+    s_shuf = (critic.sa_encoder(fr, ac[perm]) * g).sum(1)
+    return float((s_true - s_shuf).mean().item())
+
+
 def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
           device: str = "cpu", verbose: bool = True,
           eval_every: int = 0, eval_episodes: int = 30,
-          eval_max_steps: int = 600) -> str:
+          eval_max_steps: int = 600, tb_logdir: str = None, tb_shuffle_every: int = 2000) -> str:
     """Train one critic. If eval_every > 0, periodically run goal-reaching eval to
     build a success-rate-vs-step learning curve. Loss/diag-acc and eval curves are
     saved next to the checkpoint as history_{tag}.json."""
@@ -86,6 +98,14 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
         torch.backends.cudnn.benchmark = True
     scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
+    # Opt-in TensorBoard (lean v1): loss, diag_acc, logit_gap, grad_norm + periodic
+    # action_shuffle_delta. When tb_logdir is None this is a no-op (identical behavior).
+    writer = None
+    SHUFFLE_EVERY = max(1, int(tb_shuffle_every))
+    if tb_logdir:
+        from torch.utils.tensorboard import SummaryWriter
+        writer = SummaryWriter(tb_logdir)
+
     critic.train()
     # accumulate loss on-device; .item() forces a CPU<->GPU sync, so do it only at
     # log time (per-step .item() serializes execution and throttles GPU throughput).
@@ -122,6 +142,22 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
             mean_loss = (running / cfg.log_every).item()
             running.zero_()
             loss_hist.append([step, mean_loss, acc])
+            if writer is not None:
+                with torch.no_grad():
+                    diag = logits.diagonal()
+                    neg = (logits.sum() - diag.sum()) / (cfg.batch_size * cfg.batch_size - cfg.batch_size)
+                    logit_gap = float((diag.mean() - neg).item())
+                scale = scaler.get_scale() if use_amp else 1.0
+                gsq = sum(float((p.grad.detach().float().norm() ** 2).item())
+                          for p in critic.parameters() if p.grad is not None)
+                grad_norm = (gsq ** 0.5) / scale
+                writer.add_scalar("train/loss", mean_loss, step)
+                writer.add_scalar("train/diag_acc", acc, step)
+                writer.add_scalar("train/logit_gap", logit_gap, step)
+                writer.add_scalar("train/grad_norm", grad_norm, step)
+            if writer is not None and step % SHUFFLE_EVERY == 0:
+                writer.add_scalar("diag/action_shuffle_delta",
+                                  _action_shuffle_delta(critic, sampler, cfg, device), step)
             if verbose:
                 rate = step / (time.time() - t0)
                 print(f"[{tag}] step {step:6d}/{cfg.steps}  loss {mean_loss:.4f}"
@@ -139,6 +175,8 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
     with open(os.path.join(cfg.ckpt_dir, f"history_{tag}.json"), "w") as f:
         json.dump({"seed": cfg.seed, "oracle": oracle, "steps": cfg.steps,
                    "loss": loss_hist, "eval": eval_hist}, f, indent=2)
+    if writer is not None:
+        writer.flush(); writer.close()
     if verbose:
         print(f"[{tag}] saved -> {path}  ({time.time()-t0:.1f}s)")
     return path
