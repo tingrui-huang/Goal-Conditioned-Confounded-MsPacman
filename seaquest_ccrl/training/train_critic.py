@@ -127,6 +127,14 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
             logits = critic(frames, actions, goals)       # (B,B)
             loss = bce(logits, labels).sum(dim=1).mean()  # NCE: sum candidates, mean anchors
         scaler.scale(loss).backward()
+        # grad norm must be read from the SCALED grads (before scaler.step unscales them in
+        # place), then divided by the loss scale -> true norm on both CPU (scale=1) and GPU/AMP.
+        grad_norm_log = None
+        if writer is not None and step % cfg.log_every == 0:
+            scale = scaler.get_scale() if use_amp else 1.0
+            gsq = sum(float((p.grad.detach().float().norm() ** 2).item())
+                      for p in critic.parameters() if p.grad is not None)
+            grad_norm_log = (gsq ** 0.5) / scale
         scaler.step(opt)
         scaler.update()
 
@@ -144,17 +152,15 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
             loss_hist.append([step, mean_loss, acc])
             if writer is not None:
                 with torch.no_grad():
-                    diag = logits.diagonal()
-                    neg = (logits.sum() - diag.sum()) / (cfg.batch_size * cfg.batch_size - cfg.batch_size)
+                    lf = logits.float()                      # fp32: fp16 logits.sum() overflows -> inf
+                    diag = lf.diagonal()
+                    neg = (lf.sum() - diag.sum()) / (cfg.batch_size * cfg.batch_size - cfg.batch_size)
                     logit_gap = float((diag.mean() - neg).item())
-                scale = scaler.get_scale() if use_amp else 1.0
-                gsq = sum(float((p.grad.detach().float().norm() ** 2).item())
-                          for p in critic.parameters() if p.grad is not None)
-                grad_norm = (gsq ** 0.5) / scale
                 writer.add_scalar("train/loss", mean_loss, step)
                 writer.add_scalar("train/diag_acc", acc, step)
                 writer.add_scalar("train/logit_gap", logit_gap, step)
-                writer.add_scalar("train/grad_norm", grad_norm, step)
+                if grad_norm_log is not None:
+                    writer.add_scalar("train/grad_norm", grad_norm_log, step)
             if writer is not None and step % SHUFFLE_EVERY == 0:
                 writer.add_scalar("diag/action_shuffle_delta",
                                   _action_shuffle_delta(critic, sampler, cfg, device), step)
