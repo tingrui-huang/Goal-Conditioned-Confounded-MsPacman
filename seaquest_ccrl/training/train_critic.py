@@ -127,14 +127,15 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
             logits = critic(frames, actions, goals)       # (B,B)
             loss = bce(logits, labels).sum(dim=1).mean()  # NCE: sum candidates, mean anchors
         scaler.scale(loss).backward()
-        # grad norm must be read from the SCALED grads (before scaler.step unscales them in
-        # place), then divided by the loss scale -> true norm on both CPU (scale=1) and GPU/AMP.
+        # Canonical AMP grad-norm: unscale the grads in place, read the TRUE (unscaled) norm,
+        # THEN step. scaler.step() detects unscale_ was already called and won't repeat it; on
+        # non-log steps scaler.step does the unscale. CPU (enabled=False) -> unscale_ is a no-op.
         grad_norm_log = None
         if writer is not None and step % cfg.log_every == 0:
-            scale = scaler.get_scale() if use_amp else 1.0
+            scaler.unscale_(opt)
             gsq = sum(float((p.grad.detach().float().norm() ** 2).item())
                       for p in critic.parameters() if p.grad is not None)
-            grad_norm_log = (gsq ** 0.5) / scale
+            grad_norm_log = gsq ** 0.5
         scaler.step(opt)
         scaler.update()
 
@@ -152,10 +153,12 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
             loss_hist.append([step, mean_loss, acc])
             if writer is not None:
                 with torch.no_grad():
-                    lf = logits.float()                      # fp32: fp16 logits.sum() overflows -> inf
-                    diag = lf.diagonal()
-                    neg = (lf.sum() - diag.sum()) / (cfg.batch_size * cfg.batch_size - cfg.batch_size)
-                    logit_gap = float((diag.mean() - neg).item())
+                    lf = logits.detach().float()             # fp32 BEFORE any reduction
+                    eye = torch.eye(lf.shape[0], dtype=torch.bool, device=lf.device)
+                    pos = lf.diagonal(); pos = pos[torch.isfinite(pos)]
+                    off = lf[~eye]; off = off[torch.isfinite(off)]   # finite off-diagonal only
+                    logit_gap = (float((pos.mean() - off.mean()).item())
+                                 if pos.numel() and off.numel() else float("nan"))
                 writer.add_scalar("train/loss", mean_loss, step)
                 writer.add_scalar("train/diag_acc", acc, step)
                 writer.add_scalar("train/logit_gap", logit_gap, step)
