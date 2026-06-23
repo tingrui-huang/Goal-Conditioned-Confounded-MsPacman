@@ -85,6 +85,9 @@ def train(oracle: bool, cfg: TrainConfig = DEFAULT, game=None, root: str = None,
                        seed=cfg.seed, verbose=False)
         critic.train()
         eval_hist.append([step, res["success_rate"]])
+        if writer is not None:                           # control curve, alongside the contrastive ones
+            writer.add_scalar("eval/success_rate", res["success_rate"], step)
+            writer.add_scalar("eval/mean_min_dist", res["mean_min_dist"], step)
         if verbose:
             print(f"[{tag}] step {step:6d}  EVAL success {res['success_rate']:.3f} "
                   f"({eval_episodes} eps)")

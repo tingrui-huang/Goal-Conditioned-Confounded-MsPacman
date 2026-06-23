@@ -63,6 +63,9 @@ def main():
     ap.add_argument("--device", default=None)
     ap.add_argument("--threads", type=int, default=0)
     ap.add_argument("--tb-logdir", default=None, help="TensorBoard event dir (opt-in)")
+    ap.add_argument("--eval-every", type=int, default=0, help="periodic online goal-reaching eval (0=off)")
+    ap.add_argument("--eval-episodes", type=int, default=30)
+    ap.add_argument("--eval-max-steps", type=int, default=600)
     args = ap.parse_args()
     if args.threads > 0:
         torch.set_num_threads(args.threads)
@@ -81,7 +84,8 @@ def main():
           f"repr_dim={cfg.repr_dim} goal_radius={cfg.goal_radius} goal_box=({gx0},{gx1},{gy0},{gy1})")
     hard_assertions(game, cfg, args.ckpt_dir, args.root)
     path = train(oracle=args.oracle, cfg=cfg, game=game, root=args.root, device=device,
-                 verbose=True, tb_logdir=args.tb_logdir)
+                 verbose=True, tb_logdir=args.tb_logdir, eval_every=args.eval_every,
+                 eval_episodes=args.eval_episodes, eval_max_steps=args.eval_max_steps)
     assert_checkpoint(path)
     _write_provenance(args, cfg, path)
     print(f"[HF 4-frame critic] DONE -> {path}")
