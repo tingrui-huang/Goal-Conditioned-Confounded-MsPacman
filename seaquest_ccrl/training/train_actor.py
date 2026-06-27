@@ -64,7 +64,15 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
         logits = actor(frames, goals)                        # (B,A)  FP32 actor forward
         logp = F.log_softmax(logits, dim=1)
         pi = logp.exp()
-        critic_term = (pi * f_all).sum(1).mean()             # E_pi[f]
+        # Per-state (per-row, over actions) z-score of the critic scores. The raw
+        # contrastive f has an effective amplitude ~O(0.16), far below the BC log-prob
+        # term, so lam never acts as a true 0-1 interpolation (lam=0.5 collapses to BC).
+        # Centering + unit-variance per state pulls critic_term to O(1), restoring a
+        # genuine critic<->BC trade-off. Absolute scale is irrelevant (BC only cares
+        # about relative argmax), so normalizing away the per-state range is harmless.
+        f_c = f_all - f_all.mean(dim=1, keepdim=True)
+        f_n = f_c / f_c.std(dim=1, keepdim=True).clamp_min(1e-6)
+        critic_term = (pi * f_n).sum(1).mean()               # E_pi[f] (z-scored per state)
         bc_term = logp.gather(1, a_orig.view(-1, 1)).squeeze(1).mean()  # log pi(a_orig)
         ent_term = -(pi * logp).sum(1).mean()                # H(pi): max-ent bonus
         loss = -((1.0 - lam) * critic_term + lam * bc_term + ent_coef * ent_term)
