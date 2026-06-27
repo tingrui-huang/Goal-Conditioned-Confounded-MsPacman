@@ -13,6 +13,12 @@ as the critic. We do NOT reimplement the loss. We only sweep lam:
     lam=0.0  -> pure critic-maximising actor (closest to the online original, no BC)
     lam=0.5  -> critic + BC (the offline-regularised configuration)
     lam=1.0  -> pure goal-conditioned BC (critic-FREE control baseline)
+plus a small entropy bonus (--ent-coef, default 0.01). The original CRL actor is a
+continuous Gaussian policy with inherent entropy; without an explicit H(pi) term the
+discrete categorical lam=0 actor maximising this NEAR-FLAT critic (action-score range
+~0.16) collapses the softmax to a single constant action (vanishing gradient) -- verified
+on CPU/fp32, so it is an optimisation pathology, NOT an fp16 or code bug. The entropy
+bonus restores a well-posed pure-critic actor; lam>0 is already protected by the BC term.
 
 This file does the ENV-FREE half: train the three actors and measure, on held-out teacher
 trajectory states (the sampler's hindsight (s, a_teacher, g) tuples), how each actor's
@@ -82,6 +88,9 @@ def main():
                     default="artifacts/seaquest/seaquest_stage_g0_fullview_train/critic_full_view.pt")
     ap.add_argument("--root", default="seaquest_ccrl/data/raw_hf")
     ap.add_argument("--lams", default="0.0,0.5,1.0")
+    ap.add_argument("--ent-coef", type=float, default=0.01,
+                    help="entropy bonus (max-ent); needed so lam=0 pure-critic doesn't "
+                         "collapse the softmax to a constant action on this flat critic")
     ap.add_argument("--steps", type=int, default=20000)
     ap.add_argument("--out-dir", default="artifacts/seaquest/goal_control/actor_lambda_sweep")
     ap.add_argument("--device", default=None)
@@ -100,7 +109,7 @@ def main():
                                     root=args.root)
 
     results = {"critic_ckpt": args.critic_ckpt, "view": view, "steps": args.steps,
-               "frame_stack": cfg.frame_stack, "lambda_sweep": {}}
+               "frame_stack": cfg.frame_stack, "ent_coef": args.ent_coef, "lambda_sweep": {}}
     for lam in [float(x) for x in args.lams.split(",")]:
         print(f"\n=== training actor lambda={lam} "
               f"({'pure-critic' if lam==0 else 'pure-BC' if lam==1 else 'critic+BC'}) ===")
@@ -109,8 +118,13 @@ def main():
         os.makedirs(sub, exist_ok=True)
         cfg.ckpt_dir = sub
         actor = train_actor(critic, game, cfg, oracle=oracle, lam=lam,
-                            steps=args.steps, device=device, verbose=True)
+                            steps=args.steps, device=device, verbose=True,
+                            root=args.root, ent_coef=args.ent_coef)
         agree = on_trajectory_agreement(actor, critic, eval_sampler, cfg, device)
+        # judge collapse by ENTROPY (ln(A)=uniform), NOT by argmax dominant-action share,
+        # which is misleading for a near-uniform policy (a near-tie argmax looks "collapsed").
+        agree["entropy_collapsed"] = bool(agree["actor_entropy_nats"] < 0.05)
+        agree["ent_coef"] = args.ent_coef
         results["lambda_sweep"][f"{lam:.2f}"] = agree
         print(f"  [lam={lam}] {json.dumps(agree)}")
 

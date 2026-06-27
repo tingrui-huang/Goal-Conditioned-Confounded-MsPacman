@@ -26,12 +26,17 @@ from seaquest_ccrl.models.actor import GoalConditionedActor
 
 
 def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
-                steps: int = 20000, device: str = "cpu", verbose: bool = True):
+                steps: int = 20000, device: str = "cpu", verbose: bool = True,
+                root: str = None, ent_coef: float = 0.0):
+    """ent_coef: entropy bonus coefficient. The original CRL actor is a continuous
+    Gaussian policy with inherent entropy; the discrete categorical analog needs an
+    explicit H(pi) term, else maximising a near-flat critic (lam=0) collapses the
+    softmax to a constant action (vanishing gradient). Default 0.0 keeps prior behavior."""
     critic.eval()
     for p in critic.parameters():
         p.requires_grad_(False)
     rng = np.random.default_rng(cfg.seed + 777)
-    sampler = HindsightSampler(game, oracle=oracle, cfg=cfg, device=device, rng=rng)
+    sampler = HindsightSampler(game, oracle=oracle, cfg=cfg, device=device, rng=rng, root=root)
     actor = GoalConditionedActor(cfg.frame_size, cfg.nb_actions,
                                  getattr(cfg, "frame_stack", 1)).to(device)
     opt = torch.optim.Adam(actor.parameters(), lr=cfg.lr)
@@ -60,7 +65,8 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
             pi = logp.exp()
             critic_term = (pi * f_all).sum(1).mean()             # E_pi[f]
             bc_term = logp.gather(1, a_orig.view(-1, 1)).squeeze(1).mean()  # log pi(a_orig)
-            loss = -((1.0 - lam) * critic_term + lam * bc_term)
+            ent_term = -(pi * logp).sum(1).mean()                # H(pi): max-ent bonus
+            loss = -((1.0 - lam) * critic_term + lam * bc_term + ent_coef * ent_term)
         opt.zero_grad(set_to_none=True)
         scaler.scale(loss).backward()
         scaler.step(opt)
@@ -69,8 +75,9 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
         if verbose and step % 500 == 0:
             with torch.no_grad():
                 bc_acc = (logits.argmax(1) == a_orig).float().mean().item()
+                ent_now = (-(pi * logp).sum(1).mean()).item()    # H(pi); ln(A) = uniform
             print(f"[actor:{tag}] step {step:6d}/{steps}  loss {(running/500).item():.4f}"
-                  f"  BC-acc {bc_acc:.3f}  {step/(time.time()-t0):.1f} it/s")
+                  f"  BC-acc {bc_acc:.3f}  H {ent_now:.3f}  {step/(time.time()-t0):.1f} it/s")
             running.zero_()
 
     os.makedirs(cfg.ckpt_dir, exist_ok=True)
