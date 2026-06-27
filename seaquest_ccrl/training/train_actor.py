@@ -43,7 +43,10 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
     use_amp = str(device).startswith("cuda")
     if use_amp:
         torch.backends.cudnn.benchmark = True
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    # AMP is used ONLY for the frozen-critic inference (the 18 forwards = the compute
+    # bottleneck). The ACTOR forward + policy loss run in FP32: fp16 policy-gradients
+    # corrupted actor training on GPU (pure-BC stuck at chance while identical fp32 code
+    # learns to BC-acc ~0.3+). No GradScaler needed once the trained path is fp32.
     A = cfg.nb_actions
     tag = "oracle" if oracle else "naive"
     t0 = time.time()
@@ -58,19 +61,16 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
                 (critic.sa_encoder(frames, torch.full((frames.shape[0],), a,
                                    device=device, dtype=torch.long)) * g_emb).sum(1)
                 for a in range(A)], dim=1).float()               # (B,A) critic scores
-        with torch.autocast(device_type="cuda" if use_amp else "cpu",
-                            dtype=torch.float16, enabled=use_amp):
-            logits = actor(frames, goals)                        # (B,A)
-            logp = F.log_softmax(logits, dim=1)
-            pi = logp.exp()
-            critic_term = (pi * f_all).sum(1).mean()             # E_pi[f]
-            bc_term = logp.gather(1, a_orig.view(-1, 1)).squeeze(1).mean()  # log pi(a_orig)
-            ent_term = -(pi * logp).sum(1).mean()                # H(pi): max-ent bonus
-            loss = -((1.0 - lam) * critic_term + lam * bc_term + ent_coef * ent_term)
+        logits = actor(frames, goals)                        # (B,A)  FP32 actor forward
+        logp = F.log_softmax(logits, dim=1)
+        pi = logp.exp()
+        critic_term = (pi * f_all).sum(1).mean()             # E_pi[f]
+        bc_term = logp.gather(1, a_orig.view(-1, 1)).squeeze(1).mean()  # log pi(a_orig)
+        ent_term = -(pi * logp).sum(1).mean()                # H(pi): max-ent bonus
+        loss = -((1.0 - lam) * critic_term + lam * bc_term + ent_coef * ent_term)
         opt.zero_grad(set_to_none=True)
-        scaler.scale(loss).backward()
-        scaler.step(opt)
-        scaler.update()
+        loss.backward()
+        opt.step()
         running += loss.detach()
         if verbose and step % 500 == 0:
             with torch.no_grad():
