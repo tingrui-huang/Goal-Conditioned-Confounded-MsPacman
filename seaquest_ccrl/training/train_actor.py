@@ -27,11 +27,16 @@ from seaquest_ccrl.models.actor import GoalConditionedActor
 
 def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
                 steps: int = 20000, device: str = "cpu", verbose: bool = True,
-                root: str = None, ent_coef: float = 0.0):
+                root: str = None, ent_coef: float = 0.0, balance_grad: bool = False):
     """ent_coef: entropy bonus coefficient. The original CRL actor is a continuous
     Gaussian policy with inherent entropy; the discrete categorical analog needs an
     explicit H(pi) term, else maximising a near-flat critic (lam=0) collapses the
-    softmax to a constant action (vanishing gradient). Default 0.0 keeps prior behavior."""
+    softmax to a constant action (vanishing gradient). Default 0.0 keeps prior behavior.
+
+    balance_grad: per-step scale the critic term so its gradient norm equals the BC term's,
+    so `lam` genuinely interpolates BC<->critic. Without it, even after per-state z-scoring the
+    critic term's gradient is ~9x weaker than BC's on this flat critic (lam=0.5 is really ~9:1 BC).
+    Default False keeps prior behavior."""
     critic.eval()
     for p in critic.parameters():
         p.requires_grad_(False)
@@ -75,6 +80,15 @@ def train_actor(critic, game, cfg: TrainConfig, oracle: bool, lam: float = 0.5,
         critic_term = (pi * f_n).sum(1).mean()               # E_pi[f] (z-scored per state)
         bc_term = logp.gather(1, a_orig.view(-1, 1)).squeeze(1).mean()  # log pi(a_orig)
         ent_term = -(pi * logp).sum(1).mean()                # H(pi): max-ent bonus
+        bal_scale = 1.0
+        if balance_grad:                                     # equalize critic-term grad norm to BC's
+            params = [p for p in actor.parameters() if p.requires_grad]
+            gc = torch.autograd.grad(critic_term, params, retain_graph=True, allow_unused=True)
+            gb = torch.autograd.grad(bc_term, params, retain_graph=True, allow_unused=True)
+            nc = torch.sqrt(sum((g.detach() ** 2).sum() for g in gc if g is not None)).clamp_min(1e-8)
+            nb = torch.sqrt(sum((g.detach() ** 2).sum() for g in gb if g is not None))
+            bal_scale = float((nb / nc).item())
+            critic_term = critic_term * (nb / nc).detach()
         loss = -((1.0 - lam) * critic_term + lam * bc_term + ent_coef * ent_term)
         opt.zero_grad(set_to_none=True)
         loss.backward()

@@ -91,6 +91,9 @@ def main():
     ap.add_argument("--ent-coef", type=float, default=0.01,
                     help="entropy bonus (max-ent); needed so lam=0 pure-critic doesn't "
                          "collapse the softmax to a constant action on this flat critic")
+    ap.add_argument("--balance-grad", action="store_true",
+                    help="per-step equalize the critic-term gradient norm to the BC term's, so "
+                         "lam genuinely interpolates BC<->critic (else lam=0.5 is really ~9:1 BC)")
     ap.add_argument("--steps", type=int, default=20000)
     ap.add_argument("--out-dir", default="artifacts/seaquest/goal_control/actor_lambda_sweep")
     ap.add_argument("--device", default=None)
@@ -109,7 +112,8 @@ def main():
                                     root=args.root)
 
     results = {"critic_ckpt": args.critic_ckpt, "view": view, "steps": args.steps,
-               "frame_stack": cfg.frame_stack, "ent_coef": args.ent_coef, "lambda_sweep": {}}
+               "frame_stack": cfg.frame_stack, "ent_coef": args.ent_coef,
+               "balance_grad": bool(args.balance_grad), "lambda_sweep": {}}
     for lam in [float(x) for x in args.lams.split(",")]:
         print(f"\n=== training actor lambda={lam} "
               f"({'pure-critic' if lam==0 else 'pure-BC' if lam==1 else 'critic+BC'}) ===")
@@ -119,7 +123,7 @@ def main():
         cfg.ckpt_dir = sub
         actor = train_actor(critic, game, cfg, oracle=oracle, lam=lam,
                             steps=args.steps, device=device, verbose=True,
-                            root=args.root, ent_coef=args.ent_coef)
+                            root=args.root, ent_coef=args.ent_coef, balance_grad=args.balance_grad)
         agree = on_trajectory_agreement(actor, critic, eval_sampler, cfg, device)
         # judge collapse by ENTROPY (ln(A)=uniform), NOT by argmax dominant-action share,
         # which is misleading for a near-uniform policy (a near-tie argmax looks "collapsed").
