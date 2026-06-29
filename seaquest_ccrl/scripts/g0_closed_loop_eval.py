@@ -94,10 +94,12 @@ def _prep(frame_rgb, fs, mask_oxygen):
 
 
 def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, teacher=None,
-               device="cpu", aid=0, goal=None, mask_oxygen=False):
+               device="cpu", aid=0, goal=None, mask_oxygen=False, actor=None):
     """Reach s_t by reset(seed)+replay (deterministic; avoids ale_py cloneState aliasing),
     then roll one policy for H steps. Every policy reproduces the identical s_t -> genuine CRN.
-    mask_oxygen=True zeroes the oxygen-bar rect on the critic's input frames (naive critic)."""
+    mask_oxygen=True zeroes the oxygen-bar rect on the critic's input frames (naive critic).
+    kind='actor' deploys a learned GoalConditionedActor (argmax over its logits) on the IDENTICAL
+    masked-then-stacked obs + normalized goal -- same protocol as the argmax-critic policy."""
     port.reset(seed=seed, noop_max=0)
     rgbq = deque(maxlen=4)
     r0 = np.asarray(port.ale.getScreenRGB(), np.uint8)
@@ -109,7 +111,7 @@ def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, t
     # CRN identity = emulator RAM at the deterministically-reached s_t
     crn = hashlib.sha256(np.asarray(port.ale.getRAM(), np.uint8).tobytes()).hexdigest()[:16]
     buf = deque(maxlen=4)
-    if kind == "critic":
+    if kind in ("critic", "actor"):
         for f in rgbq:
             buf.append(_prep(f, cfg.frame_size, mask_oxygen))
     ref = full_actions[t:t + H]
@@ -122,6 +124,12 @@ def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, t
         if kind == "critic":
             obs = np.concatenate(list(buf), axis=2)
             a = int(np.argmax(critic.score_all_actions(obs, gnorm, device)))
+        elif kind == "actor":
+            obs = np.concatenate(list(buf), axis=2)
+            with torch.no_grad():
+                lg = actor(torch.as_tensor(obs[None]).to(device),
+                           torch.as_tensor(np.asarray(gnorm, np.float32)[None]).to(device))
+            a = int(lg.argmax(1).item())
         elif kind == "B0":
             a = int(ref[k])                            # exact reference-action replay
         elif kind == "B1":
@@ -134,7 +142,7 @@ def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, t
             noise = teacher.gumbel_from_uniform(rng.uniform(size=18))
             a = int(teacher.sample_action(port.teacher_obs(), noise)[0])
         rec = port.agent_step(a)
-        if kind == "critic":
+        if kind in ("critic", "actor"):
             buf.append(_prep(np.asarray(port.ale.getScreenRGB(), np.uint8), cfg.frame_size, mask_oxygen))
         lives = port.features().get("lives")
         positions.append(pcenter(port)); acts.append(a)        # CENTER coords (match training)
