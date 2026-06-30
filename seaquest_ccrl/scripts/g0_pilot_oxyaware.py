@@ -9,6 +9,7 @@ stochastic episodes (~25k steps) under artifacts/seaquest/pilot_oxyaware/.
 Checks: (1) oxygen->action, (2) oxygen->future player-y (+ matched clone/restore branch),
 (3) masked-view oxygen recoverability (simple ridge probe), (4) failure + filtering audit.
 """
+import argparse
 import json
 import os
 import sys
@@ -489,5 +490,47 @@ def _next_change(c1, c2, c3, c4):
     return "\n".join(out) if out else "- None — all four checks PASS; proceed to scale up collection when ready."
 
 
+def collect_corpus(out_dir, n_episodes, seed0=7000, store_frames=True):
+    """FULL-SCALE collector entry point. Every property the corpus must have lives in collect_episode:
+      * oxygen-aware HF teacher : OxygenAwareTeacher P1 logic inlined (teacher.sample_action + UPFIRE
+        override when oxygen < TRIGGER, hysteresis to REFILLED);
+      * first-life termination  : the loop breaks at the first life loss (player absent or lives drop);
+      * pre-step frame/action   : the frame is captured BEFORE agent_step, so frame[t] aligns with action[t];
+      * single-life done        : done[-1] is set True at the terminal transition (done.sum() <= 1).
+    Writes the raw_hf npz schema (+ teacher_actions/divers/.../surfacing/done) and a manifest carrying
+    the per-episode terminal cause. This is the ONLY path with all four properties (collect_dataset.py
+    uses the SCRIPTED policy, not the HF teacher)."""
+    os.makedirs(out_dir, exist_ok=True)
+    teacher = CleanRLSeaquestTeacher(TEACHER_CKPT, TEACHER_SRC, mod_name="cleanrl_src_A")
+    meta = []
+    for i in range(n_episodes):
+        seed = seed0 + i
+        arrays, _log, tcause = collect_episode(teacher, seed, store_frames=store_frames, first_life=True)
+        np.savez_compressed(f"{out_dir}/traj_{i:04d}.npz", **{k: v for k, v in arrays.items() if v is not None})
+        dn = arrays["done"]
+        meta.append({"file": f"traj_{i:04d}.npz", "seed": seed, "steps": int(len(arrays["actions"])),
+                     "terminal_cause": tcause, "single_life_done": int(dn.sum()) <= 1,
+                     "lives_constant": int(len(np.unique(arrays["lives"][arrays["lives"] >= 0]))) <= 1})
+        print(f"  ep{i} seed{seed}: {len(arrays['actions'])} steps terminal={tcause}")
+    json.dump({"experiment": "seaquest_oxygen_aware_first_life", "confounder": "oxygen",
+               "policy": {"variant": "P1_unconditional", "wrapper": "OxygenAwareTeacher",
+                          "surface_trigger": TRIGGER, "refilled": REFILLED, "surface_action": SURFACE_ACTION},
+               "termination": "first_life_loss", "frame_alignment": "pre_step (frame[t] aligned with action[t])",
+               "schema": "frames(T,210,160,3)u8, actions, teacher_actions, player_pos(center), oxygen(OxygenBar.w), "
+                         "divers, lives, reward, surfacing, done(terminal@first_life_loss), "
+                         "death_respawn(all 0), player_present(all True), target, theta",
+               "episodes": meta}, open(f"{out_dir}/manifest.json", "w"), indent=2)
+    print(f"WROTE {n_episodes} first-life episodes -> {out_dir}/")
+
+
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--collect", action="store_true", help="full-scale first-life collection (no diagnostics)")
+    ap.add_argument("--episodes", type=int, default=40)
+    ap.add_argument("--seed0", type=int, default=7000)
+    ap.add_argument("--out", default="artifacts/seaquest/oxyaware_first_life/data")
+    a = ap.parse_args()
+    if a.collect:
+        collect_corpus(a.out, a.episodes, a.seed0)
+    else:
+        main()

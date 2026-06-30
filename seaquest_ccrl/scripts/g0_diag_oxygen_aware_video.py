@@ -215,6 +215,36 @@ def write_log(roll, path):
             wcsv.writerow(r)
 
 
+def render_from_traj(npz_path, out_path, title, terminal_cause="", step=2, fps=12):
+    """Render an annotated GIF directly from a COLLECTED first-life trajectory (collect_corpus output):
+    shows the oxygen-aware surfacing within the single life and marks the terminal (first life loss)."""
+    z = np.load(npz_path)
+    fr = z["frames"]; oxy = z["oxygen"]; lv = z["lives"]; py = z["player_pos"][:, 1]
+    surf = z["surfacing"]; act = z["actions"]; tact = z["teacher_actions"]; n = len(act)
+    sw = {}; prev = False
+    for t in range(n):
+        if bool(surf[t]) != prev:
+            sw[t] = (">>> SWITCH: HF teacher -> SURFACING override <<<" if surf[t]
+                     else "<<< SWITCH: SURFACING override -> HF teacher >>>")
+            prev = bool(surf[t])
+    term_banner = f">>> TERMINAL: first life loss (cause: {terminal_cause}) <<<"
+    imgs = []
+    idxs = list(range(0, n, step))
+    if idxs[-1] != n - 1:
+        idxs.append(n - 1)                       # always include the exact terminal frame
+    for i in idxs:
+        info = {"t": int(i), "oxy": float(oxy[i]), "lives": int(lv[i]), "py": float(py[i]),
+                "surfacing": bool(surf[i]), "teacher_a": int(tact[i]), "emitted_a": int(act[i]), "title": title}
+        s = sw.get(i) or sw.get(i - 1) or sw.get(i + 1)
+        if i >= n - 1 - step:
+            s = term_banner
+        imgs.append(annotate(fr[i], info, switch=s))
+    dur = int(round(1000.0 / fps / 10.0)) * 10
+    imgs[0].save(out_path, save_all=True, append_images=imgs[1:], duration=dur, loop=0, optimize=True)
+    print(f"  rendered {len(imgs)} frames (life={n} steps, terminal={terminal_cause}) -> {out_path}")
+    return len(imgs)
+
+
 def main():
     global F_HDR, F_BIG, OUT, SEED, SURFACE_TRIGGER, REFILLED, SURFACE_ACTION
     ap = argparse.ArgumentParser()
@@ -223,7 +253,16 @@ def main():
     ap.add_argument("--surface-action", type=int, default=SURFACE_ACTION)
     ap.add_argument("--seed", type=int, default=SEED)
     ap.add_argument("--out", default=None, help="output dir (default: ..._video_t<trigger>)")
+    ap.add_argument("--from-traj", default=None, help="render an annotated GIF from a collected first-life traj npz")
+    ap.add_argument("--terminal", default="", help="terminal cause label for --from-traj")
+    ap.add_argument("--out-gif", default=None, help="output gif path for --from-traj")
+    ap.add_argument("--title", default="OXYGEN-AWARE HF teacher (first-life)")
     a = ap.parse_args()
+    if a.from_traj:
+        F_HDR = _font(14); F_BIG = _font(15)
+        os.makedirs(os.path.dirname(a.out_gif), exist_ok=True)
+        render_from_traj(a.from_traj, a.out_gif, a.title, terminal_cause=a.terminal)
+        return
     SURFACE_TRIGGER, REFILLED, SURFACE_ACTION, SEED = a.trigger, a.refilled, a.surface_action, a.seed
     OUT = a.out or f"{OUT}_t{SURFACE_TRIGGER}"
     F_HDR = _font(14); F_BIG = _font(15)
