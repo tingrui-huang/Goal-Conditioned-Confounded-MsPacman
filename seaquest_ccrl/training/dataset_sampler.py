@@ -29,16 +29,31 @@ class HindsightSampler:
         self.rng = rng or np.random.default_rng(cfg.seed)
         ds = game.make_dataset(root or game.data_root, oracle)
 
-        frames, actions, goals, lengths = [], [], [], []
+        frames, actions, goals, lengths, seg_ends = [], [], [], [], []
         for traj in ds.trajectories():
             frames.append(preprocess_frames(traj["obs"], cfg.frame_size))     # resize once
             actions.append(np.asarray(traj["action"], dtype=np.int64))
-            goals.append(np.asarray(traj["achieved_goal"], dtype=np.float32))
-            lengths.append(len(actions[-1]))
+            g = np.asarray(traj["achieved_goal"], dtype=np.float32)
+            # FIRST-LIFE rule: a goal may never be an absent-player (death-animation) position.
+            assert np.isfinite(g).all(), ("achieved_goal has non-finite positions -- a death frame "
+                                          "leaked into the trajectory; recollect with first-life termination.")
+            goals.append(g)
+            L = len(actions[-1]); lengths.append(L)
+            # per-step segment end = nearest done at-or-after this step (else episode end). Future goals
+            # are clamped to this so they NEVER cross a life loss (done=True marks the first life loss).
+            dn = np.asarray(traj["done"], dtype=bool)
+            se = np.empty(L, np.int64); nd = L - 1
+            for i in range(L - 1, -1, -1):
+                if dn[i]:
+                    nd = i
+                se[i] = nd
+            seg_ends.append(se)
         self.lengths = np.asarray(lengths, dtype=np.int64)
         # start index of each episode inside the concatenated arrays
         self.offsets = np.concatenate([[0], np.cumsum(self.lengths)[:-1]]).astype(np.int64)
         self.n_ep = len(lengths)
+        # global segment-end index per step (offset-corrected) -> future goal never crosses a done
+        self.seg_end = np.concatenate([se + off for se, off in zip(seg_ends, self.offsets)]).astype(np.int64)
         self.p_geom = 1.0 - cfg.gamma
         self.k_stack = max(1, int(getattr(cfg, "frame_stack", 1)))
 
@@ -65,9 +80,10 @@ class HindsightSampler:
         ep = self.rng.integers(0, self.n_ep, size=B)
         t = self.rng.integers(0, self.lengths[ep])                 # uniform 0..T-1 per episode
         k = self.rng.geometric(self.p_geom, size=B)                # >= 1 (hindsight offset)
-        fut = np.minimum(t + k, self.lengths[ep] - 1)
-        gt = torch.from_numpy(self.offsets[ep] + t).to(self.device)   # global index of (s_t, a_t)
-        gf = torch.from_numpy(self.offsets[ep] + fut).to(self.device)  # global index of future goal
+        gt_np = self.offsets[ep] + t                               # global index of (s_t, a_t)
+        gf_np = np.minimum(gt_np + k, self.seg_end[gt_np])         # clamp to the step's segment end (no life crossing)
+        gt = torch.from_numpy(gt_np).to(self.device)
+        gf = torch.from_numpy(gf_np).to(self.device)               # global index of future goal
         if self.k_stack == 1:
             frames = self.frames.index_select(0, gt)                  # (B,H,W,3)
         else:

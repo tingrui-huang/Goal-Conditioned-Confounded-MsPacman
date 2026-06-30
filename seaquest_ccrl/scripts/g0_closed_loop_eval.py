@@ -142,12 +142,14 @@ def run_policy(seed, full_actions, t, H, kind, *, port, critic=None, cfg=None, t
             noise = teacher.gumbel_from_uniform(rng.uniform(size=18))
             a = int(teacher.sample_action(port.teacher_obs(), noise)[0])
         rec = port.agent_step(a)
+        lives = port.features().get("lives"); pc = pcenter(port)
+        # FIRST-LIFE-LOSS terminal: the rollout STOPS at the first life loss (player vanished or lives
+        # dropped) and nothing past it is recorded -> success can never be counted after a life loss.
+        if (pc is None) or (start_lives is not None and lives is not None and lives < start_lives):
+            life_step = k; break
         if kind in ("critic", "actor"):
             buf.append(_prep(np.asarray(port.ale.getScreenRGB(), np.uint8), cfg.frame_size, mask_oxygen))
-        lives = port.features().get("lives")
-        positions.append(pcenter(port)); acts.append(a)        # CENTER coords (match training)
-        if life_step < 0 and start_lives is not None and lives is not None and lives < start_lives:
-            life_step = k
+        positions.append(pc); acts.append(a)        # CENTER coords (match training)
         if rec["terminated"] or rec["truncated"]:
             term_step = k; break
     return {"crn": crn, "positions": positions, "actions": acts,
@@ -237,6 +239,7 @@ def main():
                    "time_to_first_hit", "life_lost", "terminated", "n_steps")},
                 "actions": m["actions"], "dists": m["dists"]}
     BASE = ["B0", "B1", "B2", "B3a", "B3b"]
+    valid_per_H = {H: 0 for H in HORIZONS}; censored_per_H = {H: 0 for H in HORIZONS}   # first-life censoring
     work = SeaquestPort(sticky=0.0, full_action_space=True, seed=seeds[0])
     for seed in seeds:
         if seed not in by_seed:
@@ -246,35 +249,47 @@ def main():
         maxneed = max(t + H for t in ts for (H, _) in by_seed[seed][t])
         # CENTER reference trajectory (one replay) -> center goals matching the training convention
         work.reset(seed=seed, noop_max=0)
-        cpos = [pcenter(work)]
+        cpos = [pcenter(work)]; ref_lv0 = work.features().get("lives"); LL = maxneed + 1
         for s in range(maxneed):
-            work.agent_step(int(acts_full[s])); cpos.append(pcenter(work))
+            work.agent_step(int(acts_full[s])); lv = work.features().get("lives"); pc = pcenter(work)
+            if LL > maxneed and ((pc is None) or (ref_lv0 is not None and lv is not None and lv < ref_lv0)):
+                LL = s + 1                                # reference FIRST life loss (cpos index of the death)
+            cpos.append(pc)
         for t in ts:
             hlist = by_seed[seed][t]
-            maxH = max(H for H, _ in hlist); aid0 = hlist[0][1]["anchor_id"]; crn_ref = None
-            cinfo = {}                                    # H -> (center-relabeled anchor, center goal)
+            # FIRST-LIFE censoring: drop anchors whose goal (t+H) is at/after the reference life loss
+            # or whose start/goal position is absent. Count valid vs censored per horizon.
+            vlist = []
             for (H, a) in hlist:
+                ok = (t + H) < LL and cpos[t] is not None and cpos[t + H] is not None
+                (valid_per_H if ok else censored_per_H)[H] += 1
+                if ok:
+                    vlist.append((H, a))
+            if not vlist:
+                continue
+            maxH = max(H for H, _ in vlist); aid0 = vlist[0][1]["anchor_id"]; crn_ref = None
+            cinfo = {}                                    # H -> (center-relabeled anchor, center goal)
+            for (H, a) in vlist:
                 g, p0 = cpos[t + H], cpos[t]
-                d = dist(p0, g) if (g and p0) else 0.0
-                a2 = dict(a); a2["goal"] = list(g) if g else a["goal"]
-                a2["player_t"] = list(p0) if p0 else a["player_t"]; a2["displacement"] = d
-                a2["difficulty"] = difficulty(d)
-                a2["direction"] = direction(p0[1], g[1]) if (g and p0) else a["direction"]
+                d = dist(p0, g)
+                a2 = dict(a); a2["goal"] = list(g); a2["player_t"] = list(p0); a2["displacement"] = d
+                a2["difficulty"] = difficulty(d); a2["direction"] = direction(p0[1], g[1])
                 cinfo[H] = (a2, g)
             for kind in BASE:                             # goal-agnostic -> ONE rollout / horizon-set
                 traj = run_policy(seed, acts_full, t, maxH, kind, port=work, teacher=teacher,
                                   device=args.device, aid=aid0)
                 if crn_ref is None:
                     crn_ref = traj["crn"]
-                for (H, a) in hlist:
+                for (H, a) in vlist:
                     a2, g = cinfo[H]
                     rows.append(_row(a2, seed, t, H, kind, traj["crn"], crn_ref, metrics_for(traj, tuple(g), H)))
-            for (H, a) in hlist:                          # critic: goal-conditioned, per horizon
+            for (H, a) in vlist:                          # critic: goal-conditioned, per horizon
                 a2, g = cinfo[H]
                 traj = run_policy(seed, acts_full, t, H, "critic", port=work, critic=critic, cfg=cfg,
                                   device=args.device, aid=a2["anchor_id"], goal=tuple(g), mask_oxygen=mask_oxygen)
                 rows.append(_row(a2, seed, t, H, "critic", traj["crn"], crn_ref, metrics_for(traj, tuple(g), H)))
         print(f"  seed {seed}: {sum(1 for r in rows if r['seed']==seed)} rows")
+    print(f"[first-life anchors] valid/H={valid_per_H}  censored(crossing life loss)/H={censored_per_H}")
 
     _aggregate_and_gate(rows, chosen, args.out_dir, manifest, args.anchor_dir)
 

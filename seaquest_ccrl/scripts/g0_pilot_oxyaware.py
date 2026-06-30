@@ -59,8 +59,30 @@ def read_state(port):
     return P, oxy, oxbar, divers, lives, sharks
 
 
-def collect_episode(teacher, seed, store_frames=True):
-    """One stochastic P1 (OxygenAwareTeacher) episode. Returns (arrays dict, per-step log)."""
+AT_SURF_C = 56.0      # center-y at/above this == at the surface (top~46 -> center~51.5)
+
+
+def _classify_terminal(surf, cy, divers, oxy):
+    """Cause of the first (terminal) life loss, from the last valid pre-death state."""
+    if oxy is not None and oxy <= 2:
+        return "oxygen_drown"
+    if not surf:
+        return "normal_teacher"
+    if cy is not None and cy <= AT_SURF_C and divers == 0:
+        return "nodiver_surface"
+    if cy is not None and cy > AT_SURF_C:
+        return "enemy_ascent"
+    return "ascent_other"
+
+
+def collect_episode(teacher, seed, store_frames=True, first_life=True):
+    """One stochastic P1 (OxygenAwareTeacher) episode. Returns (arrays, log, terminal_cause).
+
+    first_life=True (the intended rule): the FIRST life loss terminates the trajectory. Collection
+    stops at the first life loss, NO post-death/respawn frame is saved, the final saved transition is
+    marked done=True, and the terminal cause is classified from the last valid state. Frames are
+    captured PRE-step (aligned with the action) so the final transition is the lethal action from the
+    last valid frame. death_respawn/player_present are therefore all 0/True by construction."""
     pr = prime_len(teacher, seed)
     p = SeaquestPort(sticky=0.0, full_action_space=True, seed=seed); p.reset(seed=seed, noop_max=0)
     rng = np.random.default_rng(seed)
@@ -68,16 +90,26 @@ def collect_episode(teacher, seed, store_frames=True):
         p.agent_step(int(teacher.sample_action(p.teacher_obs(), teacher.gumbel_from_uniform(rng.uniform(size=18)))[0]))
     rng_t = np.random.RandomState(seed)
     tgt = (float(rng_t.randint(*C.TARGET_X_RANGE)), float(rng_t.randint(*C.TARGET_Y_RANGE)))  # reuse goal ranges
-    surfacing = False; last_pos = None; last_oxy = 0; prev_lives = None
+    surfacing = False; init_lives = None
     A = {k: [] for k in ("frames", "actions", "teacher_actions", "player_pos", "oxygen", "divers",
                           "lives", "reward", "surfacing", "done", "death_respawn", "player_present")}
     log = []
+    terminal_cause = "censored_no_death"
     for s in range(MAX_STEPS):
         P, oxy, oxbar, divers, lives, sharks = read_state(p)
+        if init_lives is None and lives is not None:
+            init_lives = lives
+        life_lost = init_lives is not None and lives is not None and lives < init_lives
+        if first_life and (P is None or life_lost):           # FIRST life loss -> terminal; save nothing here
+            if A["done"]:
+                A["done"][-1] = True
+                terminal_cause = _classify_terminal(A["surfacing"][-1], A["player_pos"][-1][1],
+                                                    A["divers"][-1], A["oxygen"][-1])
+            break
         obs = p.teacher_obs()
         # OxygenAwareTeacher P1 logic (inlined to log teacher-selected action every step)
         teacher_a = int(teacher.sample_action(obs, teacher.gumbel_from_uniform(rng.uniform(size=18)))[0])
-        wrap_oxy = oxy if oxbar else -1                      # bar gone (death anim) -> don't update (matches wrapper)
+        wrap_oxy = oxy if oxbar else -1
         if wrap_oxy >= 0:
             if surfacing:
                 if wrap_oxy >= REFILLED:
@@ -85,33 +117,21 @@ def collect_episode(teacher, seed, store_frames=True):
             elif wrap_oxy < TRIGGER:
                 surfacing = True
         executed = SURFACE_ACTION if surfacing else teacher_a
-        # storage (carry-forward pos/oxy through missing frames, exactly like the raw_hf collector)
-        present = P is not None
-        ty = P[1] if present else None                       # TOP y (classifier/clean-refill convention)
-        cy = (P[1] + P[3] / 2.0) if present else None        # CENTER y (raw_hf player_pos)
-        cx = (P[0] + P[2] / 2.0) if present else None
-        pos = (cx, cy) if present else (last_pos if last_pos else (np.nan, np.nan))
-        if present:
-            last_pos = pos
-        oxy_store = oxy if oxbar else last_oxy
-        if oxbar:
-            last_oxy = oxy
-        respawn = (prev_lives is not None and lives is not None and lives < prev_lives)
-        drcode = 2 if respawn else (1 if not present else 0)
-        prev_lives = lives if lives is not None else prev_lives
+        ty = P[1]; cy = P[1] + P[3] / 2.0; cx = P[0] + P[2] / 2.0      # P present here (else we broke above)
         d, c = sprite_contact(P, sharks)
-        rec = p.agent_step(executed)
         if store_frames:
-            A["frames"].append(np.asarray(p.ale.getScreenRGB(), np.uint8))
+            A["frames"].append(np.asarray(p.ale.getScreenRGB(), np.uint8))    # PRE-step frame (aligned w/ action)
+        rec = p.agent_step(executed)
         A["actions"].append(executed); A["teacher_actions"].append(teacher_a)
-        A["player_pos"].append(pos); A["oxygen"].append(int(oxy_store)); A["divers"].append(int(divers))
-        A["lives"].append(-1 if lives is None else int(lives)); A["reward"].append(float(rec["reward"]))
+        A["player_pos"].append((cx, cy)); A["oxygen"].append(int(oxy)); A["divers"].append(int(divers))
+        A["lives"].append(int(lives) if lives is not None else -1); A["reward"].append(float(rec["reward"]))
         A["surfacing"].append(bool(surfacing)); A["done"].append(bool(rec["terminated"]))
-        A["death_respawn"].append(int(drcode)); A["player_present"].append(bool(present))
-        log.append({"t": s, "lives": None if lives is None else float(lives), "oxygen": float(oxy_store),
+        A["death_respawn"].append(0); A["player_present"].append(True)
+        log.append({"t": s, "lives": None if lives is None else float(lives), "oxygen": float(oxy),
                     "divers": divers, "player_y": ty, "surfacing": bool(surfacing), "executed": executed,
                     "_sd": None if not np.isfinite(d) else d, "_sc": bool(c), "reward": float(rec["reward"])})
         if rec["terminated"]:
+            terminal_cause = "game_over"
             break
     arrays = {"frames": (np.asarray(A["frames"], np.uint8) if store_frames else None),
               "actions": np.asarray(A["actions"], np.int64),
@@ -124,7 +144,7 @@ def collect_episode(teacher, seed, store_frames=True):
               "player_present": np.asarray(A["player_present"], bool),
               "target": np.tile(np.asarray(tgt, np.float32), (len(A["actions"]), 1)),
               "theta": np.int32(TRIGGER)}
-    return arrays, log
+    return arrays, log, terminal_cause
 
 
 def teacher_gradient(teacher, seed):
@@ -270,7 +290,7 @@ def main():
     cats = {k: 0 for k in ("oxygen_drown", "enemy_ascent", "nodiver_surface", "normal_teacher", "ascent_unresolved")}
     respawn_artifacts = 0; total_steps = 0; death_anim_frames = 0; ep_meta = []
     for i, seed in enumerate(SEEDS):
-        arrays, log = collect_episode(teacher, seed, store_frames=True)
+        arrays, log, _terminal_cause = collect_episode(teacher, seed, store_frames=True)
         np.savez_compressed(f"{DATA}/traj_{i:04d}.npz", **{k: v for k, v in arrays.items() if v is not None})
         logs.append(log); n = len(log); total_steps += n
         m = measure(log)

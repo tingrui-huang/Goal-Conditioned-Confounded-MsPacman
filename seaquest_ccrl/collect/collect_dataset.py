@@ -50,6 +50,9 @@ def collect(cfg: C.Config = C.DEFAULT, out_root: str = None, verbose: bool = Tru
     for ep in range(cfg.n_episodes):
         # Per-episode seed keeps determinism (check F) while varying episodes.
         frame, state = env.reset(seed=cfg.seed + ep)
+        if hasattr(policy, "reset"):
+            policy.reset()                      # reset behavior-policy recurrent state per episode
+        init_lives = state.get("lives")         # FIRST-LIFE-LOSS rule: terminate at first life loss
         target = _sample_target(rng, cfg)
 
         frames, actions, positions, oxygens, dones, targets = [], [], [], [], [], []
@@ -68,7 +71,11 @@ def collect(cfg: C.Config = C.DEFAULT, out_root: str = None, verbose: bool = Tru
             targets.append(target)
 
             frame, _, term, trunc, state = env.step(a)
-            done = bool(term or trunc)
+            # FIRST-LIFE-LOSS terminal: the transition INTO the first life loss is the last valid one.
+            # We mark it done and break BEFORE the loop appends the post-death/respawn frame.
+            life_lost = (init_lives is not None and state.get("lives") is not None
+                         and state["lives"] < init_lives)
+            done = bool(term or trunc or life_lost)
             dones.append(done)
             if done:
                 break

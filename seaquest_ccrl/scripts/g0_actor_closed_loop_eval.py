@@ -57,13 +57,16 @@ def main():
         ts = sorted(by_seed[seed].keys())
         maxneed = max(t + H for t in ts for (H, _) in by_seed[seed][t])
         work.reset(seed=seed, noop_max=0)
-        cpos = [pcenter(work)]
+        cpos = [pcenter(work)]; ref_lv0 = work.features().get("lives"); LL = maxneed + 1
         for s in range(maxneed):
-            work.agent_step(int(acts_full[s])); cpos.append(pcenter(work))
+            work.agent_step(int(acts_full[s])); lv = work.features().get("lives"); pc = pcenter(work)
+            if LL > maxneed and ((pc is None) or (ref_lv0 is not None and lv is not None and lv < ref_lv0)):
+                LL = s + 1                              # reference FIRST life loss
+            cpos.append(pc)
         for t in ts:
             for (H, a) in by_seed[seed][t]:
                 g, p0 = cpos[t + H], cpos[t]
-                if g is None or p0 is None:
+                if g is None or p0 is None or (t + H) >= LL:    # FIRST-LIFE: censor horizons crossing the life loss
                     continue
                 traj = run_policy(seed, acts_full, t, H, "actor", port=work, actor=actor, cfg=cfg,
                                   device=args.device, aid=a["anchor_id"], goal=tuple(g), mask_oxygen=mask_oxygen)
